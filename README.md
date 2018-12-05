@@ -40,15 +40,15 @@ E.g:
 
 `cmake -DCMAKE_INSTALL_PREFIX=/usr ..`
 
-Another common control option is the library sugffix of the Linux distribution.
-There are distributions like Fedora, openSUSE, e.t.c that the their 64-bit version
-use the `lib64` folder to store the 64-bit versions of their dynamic libraries.
-On the other hand, distributions like Ubuntu do the exact opposite. They use
+Another common control option is the library suffix of the Linux distribution.
+There are distributions like Fedora, openSUSE, e.t.c that their 64-bit version variant
+use the `lib64` folder to store the 64-bit libraries.
+On the other hand, Debain based distributions do the exact opposite. They use
 `lib` directory for the libraries of the native architecture and place the 32-bit versions
 on the `lib32` directory. In any case the correct library directory suffix
 can be specified with the `LIB_SUFFIX` variable. For example:
 
-`cmake -DLIB_SUFFIX=64 -DCMAKE_INSTALL_PREFIX=/usr -DINCLUDE_DEBUG_BLOCKS=OFF ..`
+`cmake -DLIB_SUFFIX=64 -DCMAKE_INSTALL_PREFIX=/usr ..`
 
 will install the libraries at the `/usr/lib64` directory.
 
