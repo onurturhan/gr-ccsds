@@ -1,7 +1,7 @@
 image: debian:latest
 
 before_script:
-    - apt-get update -qq && apt-get install -y -qq gnuradio-dev libcppunit-dev cmake swig pkg-config build-essential git
+    - apt-get update -qq && apt-get install -y -qq gnuradio-dev libcppunit-dev cmake swig pkg-config build-essential git libitpp-dev
 
 test:
     script:

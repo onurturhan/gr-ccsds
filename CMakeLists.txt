@@ -93,6 +93,7 @@ if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to compile ccsds")
 endif()
 
+
 ########################################################################
 # Install directories
 ########################################################################
@@ -148,6 +149,8 @@ include(GrVersion)
 if(NOT CPPUNIT_FOUND)
     message(FATAL_ERROR "CppUnit required to compile ccsds")
 endif()
+
+find_package(ITPP REQUIRED)
 
 ########################################################################
 # Setup doxygen option
