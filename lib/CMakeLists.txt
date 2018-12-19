@@ -36,7 +36,7 @@ if(NOT ccsds_sources)
 endif(NOT ccsds_sources)
 
 add_library(gnuradio-ccsds SHARED ${ccsds_sources})
-target_link_libraries(gnuradio-ccsds ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES})
+target_link_libraries(gnuradio-ccsds itpp ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES})
 set_target_properties(gnuradio-ccsds PROPERTIES DEFINE_SYMBOL "gnuradio_ccsds_EXPORTS")
 
 if(APPLE)
@@ -62,6 +62,7 @@ list(APPEND test_ccsds_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test_ccsds.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds.cc
 )
+include_directories(${ITPP_INCLUDE_DIRS})
 
 add_executable(test-ccsds ${test_ccsds_sources})
 
@@ -70,6 +71,7 @@ target_link_libraries(
   ${GNURADIO_RUNTIME_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CPPUNIT_LIBRARIES}
+  ${ITPP_LIBRARIES}
   gnuradio-ccsds
 )
 
