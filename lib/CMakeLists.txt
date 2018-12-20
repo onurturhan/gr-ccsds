@@ -27,6 +27,8 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 list(APPEND ccsds_sources
+    encoder.cc
+    decoder.cc
 )
 
 set(ccsds_sources "${ccsds_sources}" PARENT_SCOPE)
@@ -61,6 +63,8 @@ include_directories(${CPPUNIT_INCLUDE_DIRS})
 list(APPEND test_ccsds_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test_ccsds.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_decoder.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_encoder.cc
 )
 include_directories(${ITPP_INCLUDE_DIRS})
 

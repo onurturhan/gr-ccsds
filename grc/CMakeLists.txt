@@ -19,5 +19,6 @@
 # Boston, MA 02110-1301, USA.
 
 install(FILES
-    DESTINATION share/gnuradio/grc/blocks
+    ccsds_encoder.xml
+    ccsds_decoder.xml DESTINATION share/gnuradio/grc/blocks
 )

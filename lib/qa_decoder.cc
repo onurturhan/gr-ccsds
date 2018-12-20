@@ -19,15 +19,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INCLUDED_CCSDS_API_H
-#define INCLUDED_CCSDS_API_H
-
 #include <gnuradio/attributes.h>
+#include <cppunit/TestAssert.h>
+#include "qa_decoder.h"
+#include <ccsds/decoder.h>
 
-#ifdef gnuradio_ccsds_EXPORTS
-#  define CCSDS_API __GR_ATTR_EXPORT
-#else
-#  define CCSDS_API __GR_ATTR_IMPORT
-#endif
+namespace gr
+{
+namespace ccsds
+{
 
-#endif /* INCLUDED_CCSDS_API_H */
+void qa_decoder::t1()
+{
+  // Put test here
+}
+
+} /* namespace ccsds */
+} /* namespace gr */

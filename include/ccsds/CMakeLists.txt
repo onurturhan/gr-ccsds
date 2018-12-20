@@ -23,5 +23,6 @@
 ########################################################################
 install(FILES
     api.h
-    DESTINATION include/ccsds
+    encoder.h
+    decoder.h DESTINATION include/ccsds
 )

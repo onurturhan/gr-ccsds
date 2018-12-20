@@ -8,6 +8,10 @@
 %include "ccsds_swig_doc.i"
 
 %{
+#include "ccsds/encoder.h"
+#include "ccsds/decoder.h"
 %}
 
 
+%include "ccsds/encoder.h"
+%include "ccsds/decoder.h"

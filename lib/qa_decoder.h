@@ -19,15 +19,29 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INCLUDED_CCSDS_API_H
-#define INCLUDED_CCSDS_API_H
+#ifndef _QA_DECODER_H_
+#define _QA_DECODER_H_
 
-#include <gnuradio/attributes.h>
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/TestCase.h>
 
-#ifdef gnuradio_ccsds_EXPORTS
-#  define CCSDS_API __GR_ATTR_EXPORT
-#else
-#  define CCSDS_API __GR_ATTR_IMPORT
-#endif
+namespace gr
+{
+namespace ccsds
+{
 
-#endif /* INCLUDED_CCSDS_API_H */
+class qa_decoder : public CppUnit::TestCase
+{
+public:
+  CPPUNIT_TEST_SUITE(qa_decoder);
+  CPPUNIT_TEST(t1);
+  CPPUNIT_TEST_SUITE_END();
+
+private:
+  void t1();
+};
+
+} /* namespace ccsds */
+} /* namespace gr */
+
+#endif /* _QA_DECODER_H_ */

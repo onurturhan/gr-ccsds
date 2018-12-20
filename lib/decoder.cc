@@ -19,15 +19,42 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INCLUDED_CCSDS_API_H
-#define INCLUDED_CCSDS_API_H
-
-#include <gnuradio/attributes.h>
-
-#ifdef gnuradio_ccsds_EXPORTS
-#  define CCSDS_API __GR_ATTR_EXPORT
-#else
-#  define CCSDS_API __GR_ATTR_IMPORT
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#endif /* INCLUDED_CCSDS_API_H */
+#include <gnuradio/io_signature.h>
+#include <ccsds/decoder.h>
+
+namespace gr
+{
+namespace ccsds
+{
+
+decoder::decoder(size_t max_frame_len)
+  : d_max_frame_len(max_frame_len)
+{
+}
+
+decoder::~decoder()
+{
+}
+
+/**
+ *
+ * @return the maximum allowed frame length
+ */
+size_t
+decoder::max_frame_len() const
+{
+  return d_max_frame_len;
+}
+
+ssize_t
+decoder::finalize(uint8_t *out)
+{
+  return 0;
+}
+
+} /* namespace ccsds */
+} /* namespace gr */
