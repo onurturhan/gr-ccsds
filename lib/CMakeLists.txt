@@ -23,8 +23,14 @@
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 
-include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
+include_directories(
+    ${Boost_INCLUDE_DIR}
+    ${FEC_INCLUDE_DIRS}
+)
+
+link_directories(
+    ${Boost_LIBRARY_DIRS}
+)
 
 list(APPEND ccsds_sources
     encoder.cc
@@ -33,12 +39,18 @@ list(APPEND ccsds_sources
 
 set(ccsds_sources "${ccsds_sources}" PARENT_SCOPE)
 if(NOT ccsds_sources)
-	MESSAGE(STATUS "No C++ sources... skipping lib/")
-	return()
+    MESSAGE(STATUS "No C++ sources... skipping lib/")
+    return()
 endif(NOT ccsds_sources)
 
 add_library(gnuradio-ccsds SHARED ${ccsds_sources})
-target_link_libraries(gnuradio-ccsds itpp ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES})
+target_link_libraries(gnuradio-ccsds
+    ${Boost_LIBRARIES}
+    ${GNURADIO_ALL_LIBRARIES}
+    ${ITPP_LIBRARIES}
+    ${FEC_LIBRARIES}
+)
+
 set_target_properties(gnuradio-ccsds PROPERTIES DEFINE_SYMBOL "gnuradio_ccsds_EXPORTS")
 
 if(APPLE)
@@ -71,12 +83,13 @@ include_directories(${ITPP_INCLUDE_DIRS})
 add_executable(test-ccsds ${test_ccsds_sources})
 
 target_link_libraries(
-  test-ccsds
-  ${GNURADIO_RUNTIME_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${CPPUNIT_LIBRARIES}
-  ${ITPP_LIBRARIES}
-  gnuradio-ccsds
+    test-ccsds
+    ${GNURADIO_RUNTIME_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${CPPUNIT_LIBRARIES}
+    ${ITPP_LIBRARIES}
+    ${FEC_LIBRARIES}
+    gnuradio-ccsds
 )
 
 GR_ADD_TEST(test_ccsds test-ccsds)
