@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018
+ *  Copyright (C) 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -24,52 +24,57 @@
 #endif
 
 #include <gnuradio/io_signature.h>
-#include <ccsds/decoder.h>
+#include <ccsds/conv_decoder.h>
 
 namespace gr
 {
 namespace ccsds
 {
 
-int decoder::base_unique_id = 1;
-
-decoder::decoder(size_t max_frame_len)
-  : d_max_frame_len(max_frame_len),
-    d_id(base_unique_id++)
+decoder::decoder_sptr
+conv_decoder::make (coding_rate_t coding_rate, size_t max_frame_len)
 {
+  return decoder::decoder_sptr (
+      new conv_decoder (coding_rate, max_frame_len));
 }
 
-decoder::~decoder()
+conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
+    decoder(max_frame_len),
+    d_rate(coding_rate)
 {
+  switch(coding_rate) {
+    case RATE_1_2:
+    case RATE_2_3:
+    case RATE_3_4:
+    case RATE_5_6:
+    case RATE_7_8:
+      break;
+    default:
+      throw std::invalid_argument("conv_decoder: Invalid coding rate");
+  }
 }
 
-/**
- * Unique ID of the decoder object. Internally used to declare variables
- * in GRC
- * @return the unique ID of the decoder
- */
-int
-decoder::unique_id ()
+conv_decoder::~conv_decoder ()
 {
-  return d_id;
-
-}
-
-/**
- *
- * @return the maximum allowed frame length
- */
-size_t
-decoder::max_frame_len() const
-{
-  return d_max_frame_len;
 }
 
 ssize_t
-decoder::finalize(uint8_t *out)
+conv_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
 {
-  return 0;
+  return -1;
+}
+
+void
+conv_decoder::reset ()
+{
+}
+
+ssize_t
+conv_decoder::decode_once (uint8_t* out, const uint8_t* in, size_t len)
+{
+  return -1;
 }
 
 } /* namespace ccsds */
 } /* namespace gr */
+

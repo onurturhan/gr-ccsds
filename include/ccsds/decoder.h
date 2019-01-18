@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018
+ *  Copyright (C) 2018, 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include <ccsds/api.h>
 #include <cstdint>
 #include <cstdlib>
+#include <boost/shared_ptr.hpp>
 
 namespace gr
 {
@@ -47,6 +48,13 @@ namespace ccsds
 class CCSDS_API decoder
 {
 public:
+  typedef boost::shared_ptr<decoder> decoder_sptr;
+
+  static int base_unique_id;
+
+  int
+  unique_id ();
+
   decoder(size_t max_frame_len = 8192);
   ~decoder();
 
@@ -119,6 +127,7 @@ public:
 
 protected:
   const size_t            d_max_frame_len;
+  const int               d_id;
 private:
 };
 

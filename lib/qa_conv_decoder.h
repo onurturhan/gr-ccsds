@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018
+ *  Copyright (C) 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,24 +19,31 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * This class gathers together all the test cases for the gr-filter
- * directory into a single test suite.  As you create new test cases,
- * add them here.
- */
+#ifndef _QA_CONV_DECODER_H_
+#define _QA_CONV_DECODER_H_
 
-#include "qa_ccsds.h"
-#include "qa_encoder.h"
-#include "qa_decoder.h"
-#include "qa_conv_decoder.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/TestCase.h>
 
-CppUnit::TestSuite *
-qa_ccsds::suite()
+namespace gr
 {
-  CppUnit::TestSuite *s = new CppUnit::TestSuite("ccsds");
-  s->addTest(gr::ccsds::qa_encoder::suite());
-  s->addTest(gr::ccsds::qa_decoder::suite());
-  s->addTest(gr::ccsds::qa_conv_decoder::suite());
+namespace ccsds
+{
 
-  return s;
-}
+class qa_conv_decoder : public CppUnit::TestCase
+{
+public:
+  CPPUNIT_TEST_SUITE(qa_conv_decoder);
+  CPPUNIT_TEST(t1);
+  CPPUNIT_TEST_SUITE_END();
+
+private:
+  void
+  t1 ();
+};
+
+} /* namespace ccsds */
+} /* namespace gr */
+
+#endif /* _QA_CONV_DECODER_H_ */
+

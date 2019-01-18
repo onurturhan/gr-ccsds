@@ -24,5 +24,6 @@
 install(FILES
     api.h
     encoder.h
-    decoder.h DESTINATION include/ccsds
+    decoder.h
+    conv_decoder.h DESTINATION include/ccsds
 )

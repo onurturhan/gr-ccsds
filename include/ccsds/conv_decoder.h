@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018
+ *  Copyright (C) 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -18,12 +18,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef INCLUDED_CCSDS_CONV_DECODER_H
+#define INCLUDED_CCSDS_CONV_DECODER_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <gnuradio/io_signature.h>
+#include <ccsds/api.h>
 #include <ccsds/decoder.h>
 
 namespace gr
@@ -31,45 +29,44 @@ namespace gr
 namespace ccsds
 {
 
-int decoder::base_unique_id = 1;
-
-decoder::decoder(size_t max_frame_len)
-  : d_max_frame_len(max_frame_len),
-    d_id(base_unique_id++)
-{
-}
-
-decoder::~decoder()
-{
-}
-
-/**
- * Unique ID of the decoder object. Internally used to declare variables
- * in GRC
- * @return the unique ID of the decoder
- */
-int
-decoder::unique_id ()
-{
-  return d_id;
-
-}
-
-/**
+/*!
+ * \brief CCSDS compatible convolutional decoder with puncturing support
  *
- * @return the maximum allowed frame length
  */
-size_t
-decoder::max_frame_len() const
+class CCSDS_API conv_decoder : public decoder
 {
-  return d_max_frame_len;
-}
+public:
+  typedef enum
+  {
+    RATE_1_2 = 0,
+    RATE_2_3,
+    RATE_3_4,
+    RATE_5_6,
+    RATE_7_8
+  } coding_rate_t;
 
-ssize_t
-decoder::finalize(uint8_t *out)
-{
-  return 0;
-}
+  static decoder::decoder_sptr
+  make(coding_rate_t coding_rate, size_t max_frame_len);
 
-} /* namespace ccsds */
-} /* namespace gr */
+  conv_decoder (coding_rate_t coding_rate, size_t max_frame_len);
+  ~conv_decoder ();
+
+  void
+  reset();
+
+  ssize_t
+  decode (uint8_t *out, const uint8_t *in, size_t len);
+
+  ssize_t
+  decode_once (uint8_t *out, const uint8_t *in, size_t len);
+
+private:
+  const coding_rate_t   d_rate;
+
+};
+
+} // namespace ccsds
+} // namespace gr
+
+#endif /* INCLUDED_CCSDS_CONV_DECODER_H */
+

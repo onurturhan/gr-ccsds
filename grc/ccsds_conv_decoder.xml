@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<block>
+  <name>CCSDS Convolutional Decoder Definition</name>
+  <key>conv_encoder</key>
+  <category>[ccsds]</category>
+  <import>import ccsds</import>
+  <var_make>self.$(id) = $(id) = ccsds.conv_decoder($coding_rate, $frame_len)</var_make>
+  <var_value>ccsds.conv_decoder($coding_rate, $frame_len)</var_value>
+  <make></make>
+  <param>
+      <name>Ignore Me</name>
+      <key>value</key>
+      <value>'ok'</value>
+      <type>raw</type>
+      <hide>all</hide>
+  </param>
+
+  <param>
+    <name>Coding Rate</name>
+    <key>coding_rate</key>
+    <type>enum</type>
+    <option>
+      <name>1/2</name>
+      <key>0</key>
+    </option>
+    <option>
+      <name>2/3</name>
+      <key>1</key>
+    </option>
+    <option>
+      <name>3/4</name>
+      <key>2</key>
+    </option>
+    <option>
+      <name>5/6</name>
+      <key>3</key>
+    </option>
+    <option>
+      <name>7/8</name>
+      <key>4</key>
+    </option>
+  </param>
+  
+    <param>
+    <name>Maximum Frame Length</name>
+    <key>frame_len</key>
+    <value>1024</value>
+    <type>int</type>
+  </param>
+</block>
