@@ -1,14 +1,64 @@
-image: debian:latest
 
-before_script:
-    - apt-get update -qq && apt-get install -y -qq gnuradio-dev libcppunit-dev cmake swig pkg-config build-essential git libitpp-dev
+stages:
+        - build
+        - test
 
-test:
+ccsds_build:debian:
+    image: debian:latest
+    before_script:
+        - apt-get update -qq && apt-get install -y -qq  libcppunit-dev cmake pkg-config build-essential libconfig++-dev valgrind doxygen gnuradio-dev libitpp-dev git swig
+    stage: build
     script:
         - mkdir -p build
         - cd build
-        - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/usr ..
+        - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         - make
         - make install
         - ldconfig
         - python -c "import ccsds"
+        - cd ..
+
+    artifacts:
+        paths:
+            - build/
+
+ccsds_test:debian:
+    image: debian:latest
+    before_script:
+        - apt-get update -qq && apt-get install -y -qq  libcppunit-dev cmake pkg-config build-essential libconfig++-dev valgrind doxygen gnuradio-dev libitpp-dev git swig
+    stage: test
+    dependencies:
+        - ccsds_build:debian
+    script:
+        - cd build
+        - make CTEST_OUTPUT_ON_FAILURE=1 test
+
+ccsds_build:opensuse:
+    image: opensuse/tumbleweed
+    before_script:
+        - zypper ref && zypper install -y -l gcc-c++ cppunit-devel cmake pkg-config libconfig++-devel valgrind doxygen patterns-devel-C-C++-devel_C_C++ gnuradio-devel git swig itpp-devel boost-devel libboost_atomic-devel libboost_filesystem-devel libboost_system-devel 
+    stage: build
+    script:
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        - make
+        - make install
+        - ldconfig
+        - python -c "import ccsds"
+        - cd ..
+    artifacts:
+        paths:
+            - build/
+
+ccsds_test:opensuse:
+    image: opensuse/tumbleweed
+    before_script:
+        - zypper ref && zypper install -y -l gcc-c++ cppunit-devel cmake pkg-config libconfig++-devel valgrind doxygen patterns-devel-C-C++-devel_C_C++ gnuradio-devel git swig itpp-devel
+    stage: test
+    dependencies:
+        - ccsds_build:opensuse
+    script:
+        - cd build
+        - make CTEST_OUTPUT_ON_FAILURE=1 test
+
