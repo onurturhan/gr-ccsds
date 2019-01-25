@@ -188,6 +188,17 @@ else()
     add_library(fec INTERFACE)
 endif()
 
+# Memtest support
+option(ENABLE_MEMCHECK 
+    "Enable a full memory check on the Unit testing (valgrind tool required)" ON
+)
+
+if(ENABLE_MEMCHECK)
+  include(GrTest)
+  ccsds_enable_memcheck()
+endif(ENABLE_MEMCHECK)
+
+
 ########################################################################
 # Setup doxygen option
 ########################################################################
@@ -253,3 +264,5 @@ endif(NOT CMAKE_MODULES_DIR)
 install(FILES cmake/Modules/ccsdsConfig.cmake
     DESTINATION ${CMAKE_MODULES_DIR}/ccsds
 )
+
+

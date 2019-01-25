@@ -94,7 +94,9 @@ target_link_libraries(
     gnuradio-ccsds
 )
 
+
 GR_ADD_TEST(test_ccsds test-ccsds)
+add_memtest(test_ccsds test-ccsds)
 
 ########################################################################
 # Print summary

@@ -142,3 +142,35 @@ function(GR_ADD_TEST test_name)
     endif(WIN32)
 
 endfunction(GR_ADD_TEST)
+
+###############################################################################
+# Enables memory checking. If this function is not callled at the top-level
+# CMakeLists.txt, calls of the add_memtest() have no effect.
+###############################################################################
+function(ccsds_enable_memcheck)
+    set(CCSDS_ENABLE_MEMCHECK_VAR ON CACHE INTERNAL "EQNX_ENABLE_MEMCHECK")
+    find_program(MEMORYCHECK_COMMAND valgrind)
+endfunction(ccsds_enable_memcheck)
+
+###############################################################################
+# Adds a ctest test for memory leakage testing.
+# Params:
+#    name: The name of the test
+#    target: The target to be tested. Target should be a valid target created
+#            from add_executable()
+###############################################################################
+function(add_memtest name target )
+    if(CCSDS_ENABLE_MEMCHECK_VAR)
+        list(APPEND memcheck_cmd_options 
+            "--trace-children=yes;"
+            "--leak-check=full;"
+            "--error-exitcode=1;"
+        )
+        
+        add_test(memcheck_${name} 
+            ${MEMORYCHECK_COMMAND}
+            ${memcheck_cmd_options}
+            ${CMAKE_CURRENT_BINARY_DIR}/${target}
+        )
+    endif()
+endfunction()
