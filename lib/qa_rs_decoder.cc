@@ -19,31 +19,45 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _QA_RS_ENCODER_H_
-#define _QA_RS_ENCODER_H_
+#include <gnuradio/attributes.h>
+#include <cppunit/TestAssert.h>
+#include "qa_rs_decoder.h"
+#include <ccsds/rs_decoder.h>
+#include <random>
 
-#include <cppunit/extensions/HelperMacros.h>
-#include <cppunit/TestCase.h>
+extern "C" {
+  #include <fec.h>
+}
 
 namespace gr
 {
 namespace ccsds
 {
 
-class qa_rs_encoder : public CppUnit::TestCase
+void
+qa_rs_decoder::test_simple_decode ()
 {
-public:
-CPPUNIT_TEST_SUITE(qa_rs_encoder);
-  CPPUNIT_TEST(t1);CPPUNIT_TEST_SUITE_END()
-  ;
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::uniform_int_distribution<uint8_t> uni(0, 255);
+  decoder::decoder_sptr rs8 = rs_decoder::make(rs_decoder::ECC_16,
+                                               rs_decoder::INTERLEAVER_DEPTH_1);
 
-private:
-  void
-  t1 ();
-};
+  uint8_t *tx = new uint8_t[255];
+  uint8_t *rx = new uint8_t[255];
+
+  for(size_t i = 0; i < 255 - 32; i++) {
+    tx[i] = uni(mt);
+  }
+  encode_rs_8(tx, tx + 255 - 32, 0);
+  ssize_t ret = rs8->decode (rx, tx, 255 * 8);
+
+  /* FIXME! */
+  //CPPUNIT_ASSERT(ret >= 0);
+  delete [] tx;
+  delete [] rx;
+}
 
 } /* namespace ccsds */
 } /* namespace gr */
-
-#endif /* _QA_RS_ENCODER_H_ */
 

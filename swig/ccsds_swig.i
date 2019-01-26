@@ -19,6 +19,7 @@
 #include "ccsds/conv_decoder.h"
 #include "ccsds/conv_encoder.h"
 #include "ccsds/rs_encoder.h"
+#include "ccsds/rs_decoder.h"
 %}
 
 
@@ -27,3 +28,4 @@
 %include "ccsds/conv_decoder.h"
 %include "ccsds/conv_encoder.h"
 %include "ccsds/rs_encoder.h"
+%include "ccsds/rs_decoder.h"

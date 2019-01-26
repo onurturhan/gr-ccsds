@@ -23,5 +23,6 @@ install(FILES
     ccsds_decoder.xml
     ccsds_conv_decoder.xml
     ccsds_conv_encoder.xml
-    ccsds_rs_encoder.xml DESTINATION share/gnuradio/grc/blocks
+    ccsds_rs_encoder.xml
+    ccsds_rs_decoder.xml DESTINATION share/gnuradio/grc/blocks
 )

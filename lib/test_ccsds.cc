@@ -25,6 +25,9 @@
 
 #include <cppunit/TextTestRunner.h>
 #include <cppunit/XmlOutputter.h>
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestResult.h>
 
 #include <gnuradio/unittests.h>
 #include "qa_ccsds.h"
@@ -34,12 +37,16 @@
 int
 main (int argc, char **argv)
 {
+  CppUnit::TestResultCollector result;
+  CppUnit::BriefTestProgressListener progressListener;
   CppUnit::TextTestRunner runner;
   std::ofstream xmlfile(get_unittest_path("ccsds.xml").c_str());
   CppUnit::XmlOutputter *xmlout = new CppUnit::XmlOutputter(&runner.result(), xmlfile);
 
   runner.addTest(qa_ccsds::suite());
   runner.setOutputter(xmlout);
+  runner.eventManager().addListener(&result);
+  runner.eventManager().addListener(&progressListener);
 
   bool was_successful = runner.run("", false);
 

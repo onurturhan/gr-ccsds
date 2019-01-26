@@ -19,8 +19,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _QA_RS_ENCODER_H_
-#define _QA_RS_ENCODER_H_
+#ifndef _QA_RS_DECODER_H_
+#define _QA_RS_DECODER_H_
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
@@ -30,20 +30,20 @@ namespace gr
 namespace ccsds
 {
 
-class qa_rs_encoder : public CppUnit::TestCase
+class qa_rs_decoder : public CppUnit::TestCase
 {
 public:
-CPPUNIT_TEST_SUITE(qa_rs_encoder);
-  CPPUNIT_TEST(t1);CPPUNIT_TEST_SUITE_END()
-  ;
+  CPPUNIT_TEST_SUITE(qa_rs_decoder);
+  CPPUNIT_TEST(test_simple_decode);
+  CPPUNIT_TEST_SUITE_END();
 
 private:
   void
-  t1 ();
+  test_simple_decode ();
 };
 
 } /* namespace ccsds */
 } /* namespace gr */
 
-#endif /* _QA_RS_ENCODER_H_ */
+#endif /* _QA_RS_DECODER_H_ */
 
