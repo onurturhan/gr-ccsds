@@ -44,11 +44,20 @@ public:
     ECC_16  //!< ECC_16
   }ecc_t;
 
-  rs_encoder(ecc_t ecc, size_t max_frame_len);
+  typedef enum {
+    INTERLEAVER_DEPTH_1 = 1,
+    INTERLEAVER_DEPTH_2 = 2,
+    INTERLEAVER_DEPTH_3 = 3,
+    INTERLEAVER_DEPTH_4 = 4,
+    INTERLEAVER_DEPTH_5 = 5,
+    INTERLEAVER_DEPTH_8 = 8
+  } interleaver_t;
+
+  rs_encoder(ecc_t ecc, interleaver_t inter_depth);
   ~rs_encoder();
 
   static encoder::encoder_sptr
-  make (ecc_t ecc, size_t max_frame_len);
+  make (ecc_t ecc, interleaver_t inter_depth);
 
   ssize_t
   encode_once (uint8_t *out, const uint8_t *in, size_t len);
@@ -61,11 +70,14 @@ public:
 
 private:
 
-  void * d_rs_code;
-  uint8_t* d_rs_parity_buffer;
-  uint8_t d_rs_ecc;
-  size_t d_rs_codeblock_size;
-  size_t d_rs_parity_size;
+  void *                        d_rs_code;
+  uint8_t                       d_rs_ecc;
+  size_t                        d_rs_data_per_codeblock;
+  size_t                        d_rs_parity_size;
+  interleaver_t                 d_inter_depth;
+  size_t                        d_max_frame_len;
+  std::vector<uint8_t *>        d_buffers;
+  std::vector<uint8_t *>        d_parity;
 
   uint8_t init_rs_code(int fill);
 };

@@ -34,13 +34,14 @@ namespace gr {
 namespace ccsds {
 
 encoder::encoder_sptr
-rs_encoder::make(ecc_t ecc, size_t max_frame_len)
+rs_encoder::make (ecc_t ecc, interleaver_t inter_depth)
 {
   return encoder::encoder_sptr (
-     new rs_encoder (ecc, max_frame_len));
+     new rs_encoder (ecc, inter_depth));
 }
 
-rs_encoder::rs_encoder(ecc_t ecc, size_t max_frame_len)
+rs_encoder::rs_encoder(ecc_t ecc, interleaver_t inter_depth):
+    d_buffers(inter_depth, new uint8_t[255])
 {
   switch(ecc){
     case ECC_8:
@@ -53,13 +54,35 @@ rs_encoder::rs_encoder(ecc_t ecc, size_t max_frame_len)
       throw std::invalid_argument("rs_encoder: Invalid error correction capability");
   }
   d_rs_parity_size = 2 * d_rs_ecc;
-  d_rs_codeblock_size = 255 - d_rs_parity_size;
-  d_rs_parity_buffer = (uint8_t*)malloc(d_rs_parity_size*sizeof(uint8_t));
+  d_rs_data_per_codeblock = 255 - d_rs_parity_size;
+
+
+  switch(inter_depth) {
+    case INTERLEAVER_DEPTH_1:
+    case INTERLEAVER_DEPTH_2:
+    case INTERLEAVER_DEPTH_3:
+    case INTERLEAVER_DEPTH_4:
+    case INTERLEAVER_DEPTH_5:
+    case INTERLEAVER_DEPTH_8:
+      d_inter_depth = inter_depth;
+      break;
+    default:
+      throw std::invalid_argument("rs_decoder: Invalid interleaving depth");
+  }
+  std::vector<uint8_t*> par(d_inter_depth, new uint8_t[d_rs_parity_size]);
+  d_parity = par;
+  d_max_frame_len = 255*d_inter_depth; // As stated in CCSDS, max frame length will be 255* inteleaving_depth
   init_rs_code (0);
 }
 
 rs_encoder::~rs_encoder()
 {
+  for(uint8_t *i : d_buffers) {
+    delete [] i;
+  }
+  for(uint8_t *i : d_parity) {
+    delete [] i;
+  }
 }
 
 uint8_t
@@ -77,51 +100,69 @@ rs_encoder::init_rs_code (int fill)
 ssize_t
 rs_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
 {
-  size_t rs_bytes = 0;
-  int i = 0;
-  /* If data length is divided exactly by the data length of the
-   *  codeblock then no fill is needed
-   */
-  if (len % d_rs_codeblock_size == 0) {
-    for (i = 0; i < len / d_rs_codeblock_size; i++) {
-      encode_rs_char (d_rs_code, (unsigned char *) in, d_rs_parity_buffer);
-      /* RS is a systematic code in CCSDS so copy data first, and parity afterwards */
-      memcpy (&out[i * (d_rs_codeblock_size + d_rs_parity_size)],
-              &in[i * d_rs_codeblock_size], d_rs_codeblock_size);
-      memcpy (
-          &out[i * (d_rs_codeblock_size + d_rs_parity_size)
-              + d_rs_codeblock_size],
-          d_rs_parity_buffer, d_rs_parity_size);
+  size_t vfill = 0;
+  if(len%((d_rs_data_per_codeblock)*d_inter_depth) != 0){
+    if( (len%((d_rs_data_per_codeblock)*d_inter_depth))%d_inter_depth != 0 ){
+      return -1;
     }
-    rs_bytes = i * (d_rs_codeblock_size + d_rs_parity_size);
+    else{
+      vfill = (len%((d_rs_data_per_codeblock)*d_inter_depth))/d_inter_depth;
+    }
   }
-  else {
-    /* If data length is not divided exactly by the data length of the
-     *  codeblock then fill with zeros is needed */
-    int i = 0;
-    for (i = 0; i < len / d_rs_codeblock_size; i++) {
-      encode_rs_char (d_rs_code, (unsigned char *) in, d_rs_parity_buffer);
-      /* RS is a systematic code in CCSDS so copy data first, and parity afterwards */
-      memcpy (&out[i * (d_rs_codeblock_size + d_rs_parity_size)],
-              &in[i * d_rs_codeblock_size], d_rs_codeblock_size);
-      memcpy (
-          &out[i * (d_rs_codeblock_size + d_rs_parity_size)
-              + d_rs_codeblock_size],
-          d_rs_parity_buffer, d_rs_parity_size);
+  size_t rs_bytes = 0;
+  size_t total_codeblocks = len/((d_rs_data_per_codeblock)*d_inter_depth);
+  init_rs_code (0);
+  int i = 0, j = 0, t = 0, s = 0;
+  for(i =0; i<total_codeblocks ; i++){
+    for(t = 0; t < d_rs_data_per_codeblock; t++){
+      d_buffers[s][t] = in[i*255*d_inter_depth + t];
+      s = (s+1)%d_inter_depth;
     }
-    /*Initialize again RS code with fill*/
-    init_rs_code (d_rs_codeblock_size - (len % d_rs_codeblock_size));
-    encode_rs_char (d_rs_code, (unsigned char *) in, d_rs_parity_buffer);
-    memcpy (&out[i * (d_rs_codeblock_size + d_rs_parity_size)],
-            &in[i * d_rs_codeblock_size],
-            d_rs_codeblock_size - (len % d_rs_codeblock_size));
-    memcpy (
-        &out[i * (d_rs_codeblock_size + d_rs_parity_size) + d_rs_codeblock_size
-            - (len % d_rs_codeblock_size)],
-        d_rs_parity_buffer, d_rs_parity_size);
-    rs_bytes = i * (d_rs_codeblock_size + d_rs_parity_size)
-        + d_rs_codeblock_size - (len % d_rs_codeblock_size) + d_rs_parity_size;
-    init_rs_code (0);
+    t= 0;
+    for (uint8_t *i : d_buffers) {
+      encode_rs_char (d_rs_code, i, (unsigned char*)d_parity[t]);
+      t++;
+    }
+    /*Copy input data to output*/
+    memcpy(&out[i*255*d_inter_depth],
+           &in[i*d_rs_data_per_codeblock*d_inter_depth],
+           d_rs_data_per_codeblock*d_inter_depth*sizeof(uint8_t));
+    /*Copy parity to output*/
+    s=0;
+    for(t = 0; t< d_inter_depth*d_rs_parity_size; t++){
+      out[i*d_rs_data_per_codeblock*d_inter_depth + d_rs_data_per_codeblock*d_inter_depth + t] = d_parity[s][t/d_rs_parity_size];
+      s = (s+1)%d_inter_depth;
+    }
+  }
+  if(vfill){
+    init_rs_code (vfill);
+    s = 0;
+    i = total_codeblocks;
+    for(t = 0; t < d_rs_data_per_codeblock - vfill; t++){
+      d_buffers[s][t] = in[i*255*d_inter_depth + t];
+      s = (s+1)%d_inter_depth;
+    }
+    t = 0;
+    for (uint8_t *i : d_buffers) {
+      encode_rs_char (d_rs_code, i, (unsigned char*)d_parity[t]);
+      t++;
+    }
+    /*Copy input data to output*/
+    memcpy(&out[i*255*d_inter_depth],
+           &in[i*(d_rs_data_per_codeblock - vfill)*d_inter_depth],
+           (d_rs_data_per_codeblock - vfill)*d_inter_depth*sizeof(uint8_t));
+    /*Copy parity to output*/
+    s = 0;
+    for(t = 0; t< d_inter_depth*d_rs_parity_size; t++){
+      out[i*(d_rs_data_per_codeblock - vfill)*d_inter_depth + (d_rs_data_per_codeblock - vfill)*d_inter_depth + t] = d_parity[s][t/d_rs_parity_size];
+      s = (s+1)%d_inter_depth;
+    }
+  }
+  if(vfill){
+    rs_bytes = total_codeblocks*255*d_inter_depth + d_inter_depth*(255 - vfill);
+  }
+  else{
+    rs_bytes = total_codeblocks*255*d_inter_depth;
   }
   return rs_bytes;
 }
