@@ -118,7 +118,7 @@ rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
   }
   /* Decode each codeword */
   for (uint8_t *i : d_buffers) {
-    ret = decode_rs_8(i, NULL, 0, (int)(255 - ivfill));
+    ret = decode_rs_8(i, NULL, 0, (int)(ivfill));
     if(ret < 0) {
       std::cout << "failed decoding " << ret << std::endl;
       return -1;

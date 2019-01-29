@@ -50,10 +50,18 @@ qa_rs_decoder::test_simple_decode ()
     tx[i] = uni(mt);
   }
   encode_rs_8(tx, tx + 255 - 32, 0);
+
+  /* Randomly inject some errors */
+  for(size_t i = 0; i < 8; i++) {
+    uint8_t idx = uni(mt);
+    uint8_t err = 1 << (uni(mt) % 7);
+    tx[idx] |= err;
+  }
+
   ssize_t ret = rs8->decode (rx, tx, 255 * 8);
 
-  /* FIXME! */
-  //CPPUNIT_ASSERT(ret >= 0);
+
+  CPPUNIT_ASSERT(ret >= 0);
   delete [] tx;
   delete [] rx;
 }
