@@ -24,14 +24,34 @@
 #include <cppunit/TestAssert.h>
 #include "qa_rs_encoder.h"
 #include <ccsds/rs_encoder.h>
+#include <random>
+
+extern "C" {
+  #include <fec.h>
+}
 
 namespace gr {
   namespace ccsds {
 
     void
-    qa_rs_encoder::t1()
+	qa_rs_encoder::test_simple_encoder()
     {
-      // Put test here
+    	  std::random_device rd;
+    	  std::mt19937 mt(rd());
+    	  std::uniform_int_distribution<uint8_t> uni(0, 255);
+    	  encoder::encoder_sptr rs8 = rs_encoder::make(rs_encoder::ECC_16,
+    	                                               rs_encoder::INTERLEAVER_DEPTH_1);
+
+    	  uint8_t *tx = new uint8_t[255];
+    	  uint8_t *rx = new uint8_t[255];
+
+    	  for(size_t i = 0; i < 255 -32; i++) {
+    	    tx[i] = uni(mt);
+    	  }
+    	  ssize_t ret = rs8->encode(rx,tx,255 - 32);
+
+    	  delete [] tx;
+    	  delete [] rx;
     }
 
   } /* namespace ccsds */

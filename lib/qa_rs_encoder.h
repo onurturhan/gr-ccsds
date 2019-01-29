@@ -34,12 +34,13 @@ class qa_rs_encoder : public CppUnit::TestCase
 {
 public:
 CPPUNIT_TEST_SUITE(qa_rs_encoder);
-  CPPUNIT_TEST(t1);CPPUNIT_TEST_SUITE_END()
+  CPPUNIT_TEST(test_simple_encoder);
+  CPPUNIT_TEST_SUITE_END()
   ;
 
 private:
   void
-  t1 ();
+  test_simple_encoder ();
 };
 
 } /* namespace ccsds */

@@ -24,6 +24,7 @@
 #include <ccsds/api.h>
 #include <ccsds/encoder.h>
 #include <cstring>
+#include <vector>
 
 
 namespace gr {

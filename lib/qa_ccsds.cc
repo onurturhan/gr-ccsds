@@ -30,6 +30,7 @@
 #include "qa_decoder.h"
 #include "qa_conv_decoder.h"
 #include "qa_rs_decoder.h"
+#include "qa_rs_encoder.h"
 
 CppUnit::TestSuite *
 qa_ccsds::suite()
@@ -39,6 +40,7 @@ qa_ccsds::suite()
   s->addTest(gr::ccsds::qa_decoder::suite());
   s->addTest(gr::ccsds::qa_conv_decoder::suite());
   s->addTest(gr::ccsds::qa_rs_decoder::suite());
+  s->addTest(gr::ccsds::qa_rs_encoder::suite());
 
   return s;
 }

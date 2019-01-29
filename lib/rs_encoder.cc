@@ -56,7 +56,6 @@ rs_encoder::rs_encoder(ecc_t ecc, interleaver_t inter_depth):
   d_rs_parity_size = 2 * d_rs_ecc;
   d_rs_data_per_codeblock = 255 - d_rs_parity_size;
 
-
   switch(inter_depth) {
     case INTERLEAVER_DEPTH_1:
     case INTERLEAVER_DEPTH_2:
@@ -69,9 +68,13 @@ rs_encoder::rs_encoder(ecc_t ecc, interleaver_t inter_depth):
     default:
       throw std::invalid_argument("rs_decoder: Invalid interleaving depth");
   }
-  std::vector<uint8_t*> par(d_inter_depth, new uint8_t[d_rs_parity_size]);
-  d_parity = par;
+  std::vector<uint8_t*> temp(d_inter_depth);
+  for (int i=0; i< d_inter_depth; i++){
+    temp[i] = new uint8_t[d_rs_parity_size];
+  }
+  d_parity = temp;
   d_max_frame_len = 255*d_inter_depth; // As stated in CCSDS, max frame length will be 255* inteleaving_depth
+  d_rs_code = NULL;
   init_rs_code (0);
 }
 
@@ -83,11 +86,16 @@ rs_encoder::~rs_encoder()
   for(uint8_t *i : d_parity) {
     delete [] i;
   }
+
+  free_rs_char(d_rs_code);
 }
 
 uint8_t
 rs_encoder::init_rs_code (int fill)
 {
+  if(d_rs_code){
+    free_rs_char(d_rs_code);
+  }
   d_rs_code = init_rs_char (8, 0x187, 112, 11, d_rs_parity_size, fill);
   if (d_rs_code)
     return 1;
@@ -101,16 +109,20 @@ ssize_t
 rs_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
 {
   size_t vfill = 0;
-  if(len%((d_rs_data_per_codeblock)*d_inter_depth) != 0){
-    if( (len%((d_rs_data_per_codeblock)*d_inter_depth))%d_inter_depth != 0 ){
+  if(len%8 != 0 ){
+    return -1;
+  }
+  size_t byte_len = len*8;
+  if(byte_len%((d_rs_data_per_codeblock)*d_inter_depth) != 0){
+    if( (byte_len%((d_rs_data_per_codeblock)*d_inter_depth))%d_inter_depth != 0 ){
       return -1;
     }
     else{
-      vfill = (len%((d_rs_data_per_codeblock)*d_inter_depth))/d_inter_depth;
+      vfill = (byte_len%((d_rs_data_per_codeblock)*d_inter_depth))/d_inter_depth;
     }
   }
   size_t rs_bytes = 0;
-  size_t total_codeblocks = len/((d_rs_data_per_codeblock)*d_inter_depth);
+  size_t total_codeblocks = byte_len/((d_rs_data_per_codeblock)*d_inter_depth);
   init_rs_code (0);
   int i = 0, j = 0, t = 0, s = 0;
   for(i =0; i<total_codeblocks ; i++){
