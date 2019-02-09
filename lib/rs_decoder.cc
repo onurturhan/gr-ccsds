@@ -112,15 +112,23 @@ rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
   /* Perform deinterleave and virtual fill */
   size_t ivfill = (vfill / d_inter_depth) / 8;
   size_t s = 0;
+
+  /* Now that we known the virtual fill size, create the decoder instance */
+  void *rs = init_rs_char(8, 0x187, 112, 11, d_parity_bytes, ivfill);
+  if(!rs) {
+    return -1;
+  }
+
   for(size_t i = 0; i < len / 8; i++) {
     d_buffers[s][i / d_inter_depth] = in[i];
     s = (s + 1) % d_inter_depth;
   }
   /* Decode each codeword */
   for (uint8_t *i : d_buffers) {
-    ret = decode_rs_8(i, NULL, 0, (int)(ivfill));
+    ret = decode_rs_char(rs, i, NULL, 0);
     if(ret < 0) {
       std::cout << "failed decoding " << ret << std::endl;
+      free_rs_char(rs);
       return -1;
     }
   }
@@ -130,7 +138,8 @@ rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
     out[cnt++] = d_buffers[s][i / d_inter_depth];
     s = (s + 1) % d_inter_depth;
   }
-  return cnt * 8;
+  free_rs_char(rs);
+   return cnt * 8;
 }
 
 void
