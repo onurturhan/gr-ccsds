@@ -45,7 +45,7 @@ rs_decoder::make (rs_decoder::ecc_t ecc, rs_decoder::interleaver_t inter)
 
 rs_decoder::rs_decoder (ecc_t ecc, interleaver_t inter) :
     decoder(255 * inter * 8),
-    d_buffers(inter, new uint8_t[255])
+    d_buffers(inter)
 {
   switch(ecc) {
     case ECC_8:
@@ -68,6 +68,10 @@ rs_decoder::rs_decoder (ecc_t ecc, interleaver_t inter) :
       break;
     default:
       throw std::invalid_argument("rs_decoder: Invalid interleaving depth");
+  }
+
+  for(size_t i = 0; i < d_inter_depth; i++) {
+    d_buffers[i] = new uint8_t[255];
   }
 }
 
@@ -120,12 +124,12 @@ rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
   }
 
   for(size_t i = 0; i < len / 8; i++) {
-    d_buffers[s][i / d_inter_depth] = in[i];
+    d_buffers[s][ivfill + i / d_inter_depth] = in[i];
     s = (s + 1) % d_inter_depth;
   }
   /* Decode each codeword */
   for (uint8_t *i : d_buffers) {
-    ret = decode_rs_char(rs, i, NULL, 0);
+    ret = decode_rs_char(rs, i + ivfill, NULL, 0);
     if(ret < 0) {
       std::cout << "failed decoding " << ret << std::endl;
       free_rs_char(rs);
@@ -134,12 +138,12 @@ rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
   }
   /* Compact the messages from each decoder */
   s = 0;
-  for(size_t i = 0; i < len / 8 - d_parity_bytes; i++) {
-    out[cnt++] = d_buffers[s][i / d_inter_depth];
+  for(size_t i = 0; i < len / 8 - d_parity_bytes * d_inter_depth; i++) {
+    out[cnt++] = d_buffers[s][ivfill + i / d_inter_depth];
     s = (s + 1) % d_inter_depth;
   }
   free_rs_char(rs);
-   return cnt * 8;
+  return cnt * 8;
 }
 
 void

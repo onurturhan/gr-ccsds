@@ -35,8 +35,12 @@ class qa_rs_decoder : public CppUnit::TestCase
 public:
   CPPUNIT_TEST_SUITE(qa_rs_decoder);
   CPPUNIT_TEST(test_simple_decode);
+  CPPUNIT_TEST(test_ecc8_decode);
   CPPUNIT_TEST(test_ecc16_decode);
-  CPPUNIT_TEST(test_ecc32_decode);
+  CPPUNIT_TEST(test_ecc8_vfill_decode);
+  CPPUNIT_TEST(test_ecc16_vfill_decode);
+  CPPUNIT_TEST(test_ecc8_interleave_2_decode);
+  CPPUNIT_TEST(test_ecc16_interleave_2_decode);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -44,10 +48,22 @@ private:
   test_simple_decode ();
 
   void
+  test_ecc8_decode ();
+
+  void
   test_ecc16_decode ();
 
   void
-  test_ecc32_decode ();
+  test_ecc8_vfill_decode ();
+
+  void
+  test_ecc16_vfill_decode ();
+
+  void
+  test_ecc8_interleave_2_decode ();
+
+  void
+  test_ecc16_interleave_2_decode ();
 };
 
 } /* namespace ccsds */
