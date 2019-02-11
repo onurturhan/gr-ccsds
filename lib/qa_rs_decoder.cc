@@ -54,7 +54,7 @@ qa_rs_decoder::test_simple_decode ()
 
   /* Randomly inject some errors */
   for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
+    uint8_t idx = uni(mt) % 255;
     uint8_t err = 1 << (uni(mt) % 7);
     tx[idx] |= err;
   }
@@ -93,7 +93,7 @@ qa_rs_decoder::test_ecc8_decode ()
 
   /* Randomly inject some errors */
   for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
+    uint8_t idx = uni(mt) % 255;
     uint8_t err = 1 << (uni(mt) % 7);
     tx[idx] |= err;
   }
@@ -129,7 +129,7 @@ qa_rs_decoder::test_ecc16_decode ()
 
   /* Randomly inject some errors */
   for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
+    uint8_t idx = uni(mt) % 255;
     uint8_t err = 1 << (uni(mt) % 7);
     tx[idx] |= err;
   }
@@ -165,7 +165,7 @@ qa_rs_decoder::test_ecc8_vfill_decode ()
 
   /* Randomly inject some errors */
   for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
+    uint8_t idx = uni(mt) % (255 - 30);
     uint8_t err = 1 << (uni(mt) % 7);
     tx[idx] |= err;
   }
@@ -201,7 +201,7 @@ qa_rs_decoder::test_ecc16_vfill_decode ()
 
   /* Randomly inject some errors */
   for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
+    uint8_t idx = uni(mt) % (255 - 30);
     uint8_t err = 1 << (uni(mt) % 7);
     tx[idx] |= err;
   }
@@ -213,76 +213,77 @@ qa_rs_decoder::test_ecc16_vfill_decode ()
   delete [] rx;
 }
 
-void
-qa_rs_decoder::test_ecc8_interleave_2_decode ()
-{
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::uniform_int_distribution<uint8_t> uni(0, 255);
-  encoder::encoder_sptr enc_rs8 = rs_encoder::make(rs_encoder::ECC_8,
-                                                   rs_encoder::INTERLEAVER_DEPTH_2);
-  decoder::decoder_sptr rs8 = rs_decoder::make(rs_decoder::ECC_8,
-                                               rs_decoder::INTERLEAVER_DEPTH_2);
 
-  ssize_t ret;
-  uint8_t *tx = new uint8_t[255 * 2];
-  uint8_t *rx = new uint8_t[255 * 2];
-
-  for(size_t i = 0; i < 255 * 2; i++) {
-    tx[i] = uni(mt);
-  }
-  ret = enc_rs8->encode(tx, tx, 2 * (255 - 16) * 8);
-  CPPUNIT_ASSERT(ret == 2 * 255 * 8);
-
-  /* Randomly inject some errors */
-  for(size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni(mt);
-    uint8_t err = 1 << (uni(mt) % 7);
-    tx[idx] |= err;
-  }
-
-  ret = rs8->decode (rx, tx, 2 * 255 * 8);
-
-  CPPUNIT_ASSERT(ret >= 0);
-  delete [] tx;
-  delete [] rx;
-}
-
-void
-qa_rs_decoder::test_ecc16_interleave_2_decode ()
+static void
+test(size_t ecc, size_t depth, size_t vfill = 0)
 {
   ssize_t ret;
   std::random_device rd;
   std::mt19937 mt (rd ());
   std::uniform_int_distribution<uint8_t> uni (0, 255);
-  encoder::encoder_sptr enc_rs = rs_encoder::make (
-      rs_encoder::ECC_16, rs_encoder::INTERLEAVER_DEPTH_2);
-  decoder::decoder_sptr rs = rs_decoder::make (rs_decoder::ECC_16,
-                                               rs_decoder::INTERLEAVER_DEPTH_2);
+  std::uniform_int_distribution<size_t> uni_idx (0, depth * (255 - 2 * ecc) - 1);
+  encoder::encoder_sptr enc_rs = rs_encoder::make ((rs_encoder::ecc_t) ecc,
+                                                   (rs_encoder::interleaver_t)depth);
+  decoder::decoder_sptr rs = rs_decoder::make ((rs_decoder::ecc_t) ecc,
+                                               (rs_decoder::interleaver_t) depth);
+  uint8_t *tx = new uint8_t[depth * 255];
+  uint8_t *rx = new uint8_t[depth * 255];
 
-  uint8_t *tx = new uint8_t[2 * 255];
-  uint8_t *rx = new uint8_t[2 * 255];
-
-  for (size_t i = 0; i < 2 * (255 - 32); i++) {
+  /* Fill random data */
+  for (size_t i = 0; i < depth * 255; i++) {
     tx[i] = uni (mt);
   }
 
-  ret = enc_rs->encode (tx, tx, 2 * (255 - 32) * 8);
-  CPPUNIT_ASSERT(ret == 2 * 255 * 8);
+  ret = enc_rs->encode (tx, tx, depth * (255 - vfill - 2 * ecc) * 8);
+  CPPUNIT_ASSERT(ret == depth * (255 - vfill) * 8);
 
-  /* Randomly inject some errors */
-  for (size_t i = 0; i < 8; i++) {
-    uint8_t idx = uni (mt);
+  /* Randomly inject 0.1% of errors */
+  for (size_t i = 0; i < (size_t)(depth * (255 - vfill - 2 * ecc) * 8 * 0.001); i++) {
+    uint8_t idx = uni_idx (mt);
     uint8_t err = 1 << (uni (mt) % 7);
     tx[idx] |= err;
   }
 
-  ret = rs->decode (rx, tx, 2 * 255 * 8);
-
+  ret = rs->decode (rx, tx, depth * (255 - vfill)* 8);
   CPPUNIT_ASSERT(ret >= 0);
   delete[] tx;
   delete[] rx;
 }
+
+
+void
+test_multiple (size_t vfill = 0)
+{
+  test(8, 1, vfill);
+  test(8, 2, vfill);
+  test(8, 3, vfill);
+  test(8, 4, vfill);
+  test(8, 5, vfill);
+  test(8, 8, vfill);
+
+  test(16, 1, vfill);
+  test(16, 2, vfill);
+  test(16, 3, vfill);
+  test(16, 4, vfill);
+  test(16, 5, vfill);
+  test(16, 8, vfill);
+}
+
+void
+qa_rs_decoder::test_no_vfill ()
+{
+  test_multiple();
+}
+
+void
+qa_rs_decoder::test_vfill ()
+{
+  test_multiple(10);
+  test_multiple(15);
+  test_multiple(40);
+  test_multiple(50);
+}
+
 
 } /* namespace ccsds */
 } /* namespace gr */

@@ -41,8 +41,8 @@ public:
    * Error Correction capability mode
    */
   typedef enum{
-    ECC_8=0,//!< ECC_8
-    ECC_16  //!< ECC_16
+    ECC_8 = 8,//!< ECC_8
+    ECC_16 = 16  //!< ECC_16
   }ecc_t;
 
   typedef enum {

@@ -39,8 +39,8 @@ public:
   CPPUNIT_TEST(test_ecc16_decode);
   CPPUNIT_TEST(test_ecc8_vfill_decode);
   CPPUNIT_TEST(test_ecc16_vfill_decode);
-  CPPUNIT_TEST(test_ecc8_interleave_2_decode);
-  CPPUNIT_TEST(test_ecc16_interleave_2_decode);
+  CPPUNIT_TEST(test_no_vfill);
+  CPPUNIT_TEST(test_vfill);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -60,10 +60,10 @@ private:
   test_ecc16_vfill_decode ();
 
   void
-  test_ecc8_interleave_2_decode ();
+  test_no_vfill();
 
   void
-  test_ecc16_interleave_2_decode ();
+  test_vfill();
 };
 
 } /* namespace ccsds */
