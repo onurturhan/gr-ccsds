@@ -65,6 +65,14 @@ conv_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
   bytes_to_bvec (unencoded, in, len);
   d_conv_code.encode_trunc (unencoded, cc_encoded);
   bvec_to_bytes (out, cc_encoded);
+
+  /* Invert output of G2*/
+  for(size_t i=0; i< (len*2)/8; i++){
+    out[i] ^= 0x40;
+    out[i] ^= 0x10;
+    out[i] ^= 0x04;
+    out[i] ^= 0x01;
+  }
   return len*2; //Fixed rate 1/2 for Convolutional Encoding
 }
 
@@ -78,7 +86,7 @@ void
 conv_encoder::bytes_to_bvec (itpp::bvec &out, const uint8_t* buffer, size_t len)
 {
   itpp::bvec byte;
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < len/8; i++) {
     byte = itpp::dec2bin (8, buffer[i]);
     itpp::concat (out, byte);
   }
