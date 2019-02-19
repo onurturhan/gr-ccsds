@@ -687,7 +687,14 @@ namespace gr {
     void
     qa_conv_encoder::t1()
     {
-      // Put test here
+      encoder::encoder_sptr conv = conv_encoder::make(conv_encoder::RATE_1_2,
+                                                 4096);
+      uint8_t tx[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      uint8_t *rx = new uint8_t[255];
+      memset(rx, 0, 255);
+
+      ssize_t ret = conv->encode(rx,tx,sizeof(tx) * 8);
+      delete [] rx;
     }
 
   } /* namespace ccsds */

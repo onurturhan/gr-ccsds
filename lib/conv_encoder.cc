@@ -42,10 +42,12 @@ conv_encoder::conv_encoder (coding_rate_t cc_rate, size_t max_frame_len)
   d_conv_code.set_generator_polynomials (d_cc_generator, 7); // Constraint length = 7
   d_conv_code.init_encoder ();
   d_conv_code.set_start_state (0);
+  d_buffer = new uint8_t[max_frame_len];
 }
 
 conv_encoder::~conv_encoder ()
 {
+  delete [] d_buffer;
   return;
 }
 
@@ -59,21 +61,129 @@ conv_encoder::encode_once (uint8_t *out, const uint8_t *in,
 ssize_t
 conv_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
 {
-  itpp::bvec unencoded (0);
-  itpp::bvec cc_encoded (0);
+  itpp::bvec unencoded(0);
+  itpp::bvec cc_encoded(0);
+  size_t return_length = 0;
   d_conv_code.set_start_state(0);
   bytes_to_bvec (unencoded, in, len);
   d_conv_code.encode_trunc (unencoded, cc_encoded);
-  bvec_to_bytes (out, cc_encoded);
-
+  bvec_to_bytes (d_buffer, cc_encoded);
+  if(d_cc_rate == RATE_1_2){
+    return_length = 2 * len;
   /* Invert output of G2*/
-  for(size_t i=0; i< (len*2)/8; i++){
-    out[i] ^= 0x40;
-    out[i] ^= 0x10;
-    out[i] ^= 0x04;
-    out[i] ^= 0x01;
+    memcpy(out, d_buffer, (return_length/8)*sizeof(uint8_t));
+    for(size_t i=0; i< return_length/8; i++){
+      out[i] ^= 0x40;
+      out[i] ^= 0x10;
+      out[i] ^= 0x04;
+      out[i] ^= 0x01;
+    }
   }
-  return len*2; //Fixed rate 1/2 for Convolutional Encoding
+  else if(d_cc_rate == RATE_2_3){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(size_t i = 0; i < len*2; i++){
+      if( (i % 4 == 2))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    return_length = len + len/2;
+  }
+  else if(d_cc_rate == RATE_3_4){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(size_t i = 0; i < len*2; i++){
+      if( (i % 6 == 2) ||
+          (i % 6 == 5))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    if(len % 3 == 0){
+      return_length = len + len/3;
+    }
+    else{
+      return_length = len + len/3 + (len%3) + 1;
+    }
+  }
+  else if(d_cc_rate == RATE_5_6){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(size_t i = 0; i < len*2; i++){
+      if( (i % 10 == 2) ||
+          (i % 10 == 5) ||
+          (i % 10 == 6) ||
+          (i % 10 == 9))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    if(len % 5 == 0){
+      return_length = len + len/5;
+    }
+    else{
+      return_length = len + len/5 + (len%5) + 1;
+    }
+  }
+  else if(d_cc_rate == RATE_7_8){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(size_t i = 0; i < len*2; i++){
+      if( (i % 14 == 2) ||
+          (i % 14 == 4) ||
+          (i % 14 == 6) ||
+          (i % 14 == 9) ||
+          (i % 14 == 10)||
+          (i % 14 == 13))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+      if(len % 7 == 0){
+        return_length = len + len/7;
+      }
+      else{
+        return_length = len + len/7 + (len%7) + 1;
+      }
+    }
+  }
+  return return_length;
 }
 
 void
@@ -83,22 +193,22 @@ conv_encoder::reset ()
 }
 
 void
-conv_encoder::bytes_to_bvec (itpp::bvec &out, const uint8_t* buffer, size_t len)
+conv_encoder::bytes_to_bvec(itpp::bvec &out, const uint8_t* buffer, size_t len)
 {
   itpp::bvec byte;
   for (int i = 0; i < len/8; i++) {
     byte = itpp::dec2bin (8, buffer[i]);
-    itpp::concat (out, byte);
+    out = itpp::concat (out, byte);
   }
 }
 
 void
-conv_encoder::bvec_to_bytes (uint8_t *out, itpp::bvec in)
+conv_encoder::bvec_to_bytes(uint8_t *out, itpp::bvec in)
 {
   size_t len = in.length ();
-  itpp::bvec byte;
+  itpp::bvec byte(0);
   for (int i = 0; i < len / 8; i++) {
-     byte = in.get (i * 8, (i + 1) * 8);
+     byte = in.get (i * 8, (i + 1) * 8 - 1);
      out[i] = itpp::bin2dec (byte, true);
    }
 }

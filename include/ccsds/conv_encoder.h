@@ -65,11 +65,12 @@ public:
 
   void
   reset ();
-
+  uint8_t *d_buffer;
 private:
   coding_rate_t  d_cc_rate;
   itpp::Convolutional_Code d_conv_code;
   itpp::ivec d_cc_generator;
+
   void bytes_to_bvec (itpp::bvec &out, const uint8_t* buffer, size_t len);
   void bvec_to_bytes (uint8_t *out, itpp::bvec in);
 };
