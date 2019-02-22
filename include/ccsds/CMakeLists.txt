@@ -28,5 +28,6 @@ install(FILES
     conv_decoder.h
     conv_encoder.h
     rs_encoder.h
-    rs_decoder.h DESTINATION include/ccsds
+    rs_decoder.h
+    turbo_encoder.h DESTINATION include/ccsds
 )

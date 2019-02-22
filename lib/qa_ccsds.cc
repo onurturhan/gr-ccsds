@@ -32,6 +32,7 @@
 #include "qa_rs_decoder.h"
 #include "qa_rs_encoder.h"
 #include "qa_conv_encoder.h"
+#include "qa_turbo_encoder.h"
 
 CppUnit::TestSuite *
 qa_ccsds::suite()
@@ -43,6 +44,7 @@ qa_ccsds::suite()
   s->addTest(gr::ccsds::qa_rs_decoder::suite());
   s->addTest(gr::ccsds::qa_rs_encoder::suite());
   s->addTest(gr::ccsds::qa_conv_encoder::suite());
+  s->addTest(gr::ccsds::qa_turbo_encoder::suite());
 
   return s;
 }
