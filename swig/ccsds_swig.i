@@ -21,6 +21,8 @@
 #include "ccsds/rs_encoder.h"
 #include "ccsds/rs_decoder.h"
 #include "ccsds/turbo_encoder.h"
+#include "ccsds/pcm_encoder.h"
+#include "ccsds/pcm_decoder.h"
 %}
 
 
@@ -31,3 +33,5 @@
 %include "ccsds/rs_encoder.h"
 %include "ccsds/rs_decoder.h"
 %include "ccsds/turbo_encoder.h"
+%include "ccsds/pcm_encoder.h"
+%include "ccsds/pcm_decoder.h"
