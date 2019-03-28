@@ -7,7 +7,7 @@ and telecommand synchronization and channel coding.
 The implementation follows the specifications desscribed in the CCSDS blue books
 [CCSDS 131.0-B-3 ](https://public.ccsds.org/Pubs/131x0b3e1.pdf), 
 [CCSDS 231.0-B-3](https://public.ccsds.org/Pubs/231x0b3.pdf) 
-and [CCSDS 401.0-B-28](https://public.ccsds.org/Pubs/401x0b28.pdf)
+and [CCSDS 401.0-B-28](https://public.ccsds.org/Pubs/401x0b29.pdf)
 
 ## Installation
 
