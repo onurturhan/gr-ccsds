@@ -27,5 +27,7 @@ install(FILES
     ccsds_rs_decoder.xml
     ccsds_turbo_encoder.xml
     ccsds_pcm_encoder.xml
-    ccsds_pcm_decoder.xml DESTINATION share/gnuradio/grc/blocks
+    ccsds_pcm_decoder.xml
+    ccsds_ccsds_modulator.xml
+    variable_ccsds_constellation.xml DESTINATION share/gnuradio/grc/blocks
 )

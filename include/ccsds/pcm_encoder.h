@@ -32,12 +32,6 @@ namespace ccsds {
 class CCSDS_API pcm_encoder
 {
 public:
-  typedef enum{
-    NRZ_L = 0,
-    NRZ_M,
-    NRZ_S,
-    BPL
-  }pcm_type_t;
 
   pcm_encoder(pcm_type_t type);
  ~pcm_encoder();
@@ -60,6 +54,10 @@ public:
    * @param length the length of the input in bits
    */
   ssize_t encode(uint8_t* out, uint8_t* in, size_t length);
+
+
+  pcm_type_t
+  get_pcm_type();
 
 private:
   pcm_type_t d_type;

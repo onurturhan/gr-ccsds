@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018
+ *  Copyright (C) 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,23 +19,28 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INCLUDED_CCSDS_API_H
-#define INCLUDED_CCSDS_API_H
+#ifndef _QA_CCSDS_MODULATOR_H_
+#define _QA_CCSDS_MODULATOR_H_
 
-#include <gnuradio/attributes.h>
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/TestCase.h>
 
-#ifdef gnuradio_ccsds_EXPORTS
-#  define CCSDS_API __GR_ATTR_EXPORT
-#else
-#  define CCSDS_API __GR_ATTR_IMPORT
-#endif
+namespace gr {
+  namespace ccsds {
 
-  typedef enum{
-    NRZ_L = 0,
-    NRZ_M,
-    NRZ_S,
-    BPL,
-    UNCODED
-  }pcm_type_t;
+    class qa_ccsds_modulator : public CppUnit::TestCase
+    {
+    public:
+      CPPUNIT_TEST_SUITE(qa_ccsds_modulator);
+      CPPUNIT_TEST(t1);
+      CPPUNIT_TEST_SUITE_END();
 
-#endif /* INCLUDED_CCSDS_API_H */
+    private:
+      void t1();
+    };
+
+  } /* namespace ccsds */
+} /* namespace gr */
+
+#endif /* _QA_CCSDS_MODULATOR_H_ */
+

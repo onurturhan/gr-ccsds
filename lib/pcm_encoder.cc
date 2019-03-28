@@ -40,6 +40,11 @@ pcm_encoder::~pcm_encoder()
 {
 }
 
+pcm_type_t
+pcm_encoder::get_pcm_type(){
+  return d_type;
+}
+
 ssize_t
 pcm_encoder::encode_trunc(uint8_t *out, uint8_t *in, size_t length)
 {
@@ -85,6 +90,10 @@ pcm_encoder::encode_trunc(uint8_t *out, uint8_t *in, size_t length)
       }
       return_len = length*2;
       break;
+    case UNCODED:
+      memcpy(out, in, length*8);
+      return_len = 0;
+      break;
     default:
       return_len = -1;
       break;
@@ -98,7 +107,12 @@ pcm_encoder::encode(uint8_t *out, uint8_t *in, size_t length)
   ssize_t return_len = 0;
   switch(d_type){
     case NRZ_L:
+    case UNCODED:
       memcpy(out, in, (length/8)*sizeof(uint8_t));
+      if(length%8 !=0){
+        memcpy(&out[length/8], &in[length/8], 1*sizeof(uint8_t));
+      }
+      return_len = length;
       break;
     case NRZ_M:
       for(size_t i=0; i< length; i++){

@@ -31,12 +31,12 @@ namespace ccsds {
 class CCSDS_API pcm_decoder
 {
 public:
-  typedef enum{
-    NRZ_L = 0,
-    NRZ_M,
-    NRZ_S,
-    BPL
-  }pcm_type_t;
+//  typedef enum{
+//    NRZ_L = 0,
+//    NRZ_M,
+//    NRZ_S,
+//    BPL
+//  }pcm_type_t;
 
   pcm_decoder(pcm_type_t type);
   ~pcm_decoder();

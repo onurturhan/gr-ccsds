@@ -33,5 +33,7 @@ install(FILES
     rs_decoder.h
     turbo_encoder.h
     pcm_encoder.h
-    pcm_decoder.h DESTINATION include/ccsds
+    pcm_decoder.h
+    ccsds_modulator.h
+    ccsds_constellation.h DESTINATION include/ccsds
 )

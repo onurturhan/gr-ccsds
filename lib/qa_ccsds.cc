@@ -35,6 +35,7 @@
 #include "qa_turbo_encoder.h"
 #include "qa_pcm_encoder.h"
 #include "qa_pcm_decoder.h"
+#include "qa_ccsds_modulator.h"
 
 CppUnit::TestSuite *
 qa_ccsds::suite()
@@ -49,6 +50,7 @@ qa_ccsds::suite()
   s->addTest(gr::ccsds::qa_turbo_encoder::suite());
   s->addTest(gr::ccsds::qa_pcm_encoder::suite());
   s->addTest(gr::ccsds::qa_pcm_decoder::suite());
+  s->addTest(gr::ccsds::qa_ccsds_modulator::suite());
 
   return s;
 }

@@ -43,6 +43,8 @@ list(APPEND ccsds_sources
     turbo_encoder.cc
     pcm_encoder.cc
     pcm_decoder.cc
+    ccsds_modulator_impl.cc
+    ccsds_constellation.cc
 )
 
 
@@ -58,6 +60,7 @@ target_link_libraries(gnuradio-ccsds
     gnuradio-ccsds-fec
     ${Boost_LIBRARIES}
     ${GNURADIO_ALL_LIBRARIES}
+    ${GNURADIO_BLOCKS_LIBRARIES}
     ${ITPP_LIBRARIES}
 )
 
@@ -85,6 +88,7 @@ include_directories(${CPPUNIT_INCLUDE_DIRS})
 list(APPEND test_ccsds_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test_ccsds.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds_modulator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_decoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_encoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_turbo_encoder.cc
@@ -102,6 +106,7 @@ add_executable(test-ccsds ${test_ccsds_sources})
 target_link_libraries(
     test-ccsds 
     ${GNURADIO_RUNTIME_LIBRARIES}
+    ${GNURADIO_BLOCKS_LIBRARIES}
     ${Boost_LIBRARIES}
     ${CPPUNIT_LIBRARIES}
     ${ITPP_LIBRARIES}

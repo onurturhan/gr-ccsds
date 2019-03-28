@@ -33,8 +33,8 @@ namespace ccsds
 void
 qa_pcm_decoder::t1 ()
 {
-  pcm_decoder *decoder = new pcm_decoder (pcm_decoder::BPL);
-  pcm_encoder *encoder = new pcm_encoder (pcm_encoder::BPL);
+  pcm_decoder *decoder = new pcm_decoder (BPL);
+  pcm_encoder *encoder = new pcm_encoder (BPL);
   size_t len = 8920;
   uint8_t alphabet[] =
     { "ABCDEFGHIJKLMNOPQRSTYVWXYZabcdefghijklmnopqrstyvwxyz" };

@@ -23,6 +23,8 @@
 #include "ccsds/turbo_encoder.h"
 #include "ccsds/pcm_encoder.h"
 #include "ccsds/pcm_decoder.h"
+#include "ccsds/ccsds_modulator.h"
+#include "ccsds/ccsds_constellation.h"
 %}
 
 
@@ -35,3 +37,8 @@
 %include "ccsds/turbo_encoder.h"
 %include "ccsds/pcm_encoder.h"
 %include "ccsds/pcm_decoder.h"
+%include "ccsds/ccsds_modulator.h"
+GR_SWIG_BLOCK_MAGIC2(ccsds, ccsds_modulator);
+%include "ccsds/ccsds_constellation.h"
+
+%include "constellation.i"
