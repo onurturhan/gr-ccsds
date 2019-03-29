@@ -55,10 +55,10 @@ public:
   reset();
 
   ssize_t
-  decode (uint8_t *out, const uint8_t *in, size_t len);
+  decode_trunc (uint8_t *out, const uint8_t *in, size_t len);
 
   ssize_t
-  decode_once (uint8_t *out, const uint8_t *in, size_t len);
+  decode (uint8_t *out, const uint8_t *in, size_t len);
 
 private:
   const coding_rate_t   d_rate;
@@ -71,7 +71,7 @@ private:
   uint32_t              d_last_state;
 
   size_t
-  decode_block(uint8_t *out, const uint8_t *in);
+  decode_block(uint8_t *out, const uint8_t *in, size_t len);
 };
 
 } // namespace ccsds

@@ -63,10 +63,10 @@ public:
   ~rs_decoder ();
 
   ssize_t
-  decode_once(uint8_t *out, const uint8_t *in, size_t len);
+  decode (uint8_t *out, const uint8_t *in, size_t len);
 
   ssize_t
-  decode(uint8_t *out, const uint8_t *in, size_t len);
+  decode_trunc (uint8_t *out, const uint8_t *in, size_t len);
 
   void
   reset();

@@ -69,7 +69,7 @@ public:
    * If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  encode_once(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  encode(uint8_t *out, const uint8_t *in, size_t len) = 0;
 
   /**
    * Encodes a buffer. The difference with the encode_once() is that
@@ -90,7 +90,7 @@ public:
    * If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  encode(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  encode_trunc(uint8_t *out, const uint8_t *in, size_t len) = 0;
 
   /**
    * This method should be called at the end of the encoding to

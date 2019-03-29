@@ -59,10 +59,10 @@ public:
   ~conv_encoder();
 
   ssize_t
-  encode_once (uint8_t *out, const uint8_t *in, size_t len);
+  encode (uint8_t *out, const uint8_t *in, size_t len);
 
   ssize_t
-  encode (uint8_t *out, const uint8_t *in, size_t len);
+  encode_trunc (uint8_t *out, const uint8_t *in, size_t len);
 
   void
   reset ();

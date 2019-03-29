@@ -41,7 +41,7 @@ pcm_encoder::~pcm_encoder()
 }
 
 ssize_t
-pcm_encoder::encode(uint8_t *out, uint8_t *in, size_t length)
+pcm_encoder::encode_trunc(uint8_t *out, uint8_t *in, size_t length)
 {
   ssize_t return_len = 0;
   switch(d_type){
@@ -93,7 +93,7 @@ pcm_encoder::encode(uint8_t *out, uint8_t *in, size_t length)
 }
 
 ssize_t
-pcm_encoder::encode_once(uint8_t *out, uint8_t *in, size_t length)
+pcm_encoder::encode(uint8_t *out, uint8_t *in, size_t length)
 {
   ssize_t return_len = 0;
   switch(d_type){

@@ -59,8 +59,9 @@ public:
   ~decoder();
 
   /**
-   * Decodes a buffer. The difference with the decoder::decode() is that this method
-   * resets any internal state of the decoder to the initial states.
+   * Decodes a buffer. The difference with the decoder::decode_trunc()
+   * is that this method resets any internal state of the decoder
+   * to the initial states.
    *
    * @param out the output buffer that will hold the decoded data
    *
@@ -75,7 +76,7 @@ public:
    * If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  decode_once(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  decode(uint8_t *out, const uint8_t *in, size_t len) = 0;
 
   /**
    * Decodes a buffer. The difference with the decoder::decode_once() is that
@@ -96,7 +97,7 @@ public:
    * If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  decode(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  decode_trunc(uint8_t *out, const uint8_t *in, size_t len) = 0;
 
   /**
    * This method should be called at the end of the decoding to

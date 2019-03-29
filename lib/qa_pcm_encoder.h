@@ -25,21 +25,24 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
 
-namespace gr {
-  namespace ccsds {
+namespace gr
+{
+namespace ccsds
+{
 
-    class qa_pcm_encoder : public CppUnit::TestCase
-    {
-    public:
-      CPPUNIT_TEST_SUITE(qa_pcm_encoder);
-      CPPUNIT_TEST(t1);
-      CPPUNIT_TEST_SUITE_END();
+class qa_pcm_encoder : public CppUnit::TestCase
+{
+public:
+  CPPUNIT_TEST_SUITE(qa_pcm_encoder);
+  CPPUNIT_TEST(t1);
+  CPPUNIT_TEST_SUITE_END();
 
-    private:
-      void t1();
-    };
+private:
+  void
+  t1 ();
+};
 
-  } /* namespace ccsds */
+} /* namespace ccsds */
 } /* namespace gr */
 
 #endif /* _QA_PCM_ENCODER_H_ */

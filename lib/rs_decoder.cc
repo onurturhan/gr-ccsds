@@ -81,10 +81,10 @@ rs_decoder::~rs_decoder ()
 }
 
 ssize_t
-rs_decoder::decode_once (uint8_t* out, const uint8_t* in, size_t len)
+rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
 {
   /* RS decoder is stateless and requires the whole code word */
-  return decode(out, in, len);
+  return decode_trunc(out, in, len);
 }
 
 /**
@@ -96,7 +96,7 @@ rs_decoder::decode_once (uint8_t* out, const uint8_t* in, size_t len)
  * @return
  */
 ssize_t
-rs_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
+rs_decoder::decode_trunc (uint8_t* out, const uint8_t* in, size_t len)
 {
   int ret;
   ssize_t cnt = 0;

@@ -49,7 +49,7 @@ public:
    * @param in     the input buffer
    * @param length the length of the input in bits
    */
-  ssize_t decode(uint8_t* out, uint8_t* in, size_t length);
+  ssize_t decode_trunc(uint8_t* out, uint8_t* in, size_t length);
 
   /**
    * Decode input buffer according to a given Pulse Code Modulation
@@ -58,7 +58,7 @@ public:
    * @param in     the input buffer
    * @param length the length of the input in bits
    */
-  ssize_t decode_once(uint8_t* out, uint8_t* in, size_t length);
+  ssize_t decode(uint8_t* out, uint8_t* in, size_t length);
 
 private:
   pcm_type_t d_type;

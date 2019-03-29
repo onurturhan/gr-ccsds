@@ -35,11 +35,15 @@ class qa_conv_decoder : public CppUnit::TestCase
 public:
   CPPUNIT_TEST_SUITE(qa_conv_decoder);
   CPPUNIT_TEST(t1);
+  CPPUNIT_TEST(t2);
   CPPUNIT_TEST_SUITE_END();
 
 private:
   void
   t1 ();
+
+  void
+  t2 ();
 };
 
 } /* namespace ccsds */

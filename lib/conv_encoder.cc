@@ -52,14 +52,14 @@ conv_encoder::~conv_encoder ()
 }
 
 ssize_t
-conv_encoder::encode_once (uint8_t *out, const uint8_t *in,
+conv_encoder::encode (uint8_t *out, const uint8_t *in,
                            size_t len)
 {
   return 0;
 }
 
 ssize_t
-conv_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
+conv_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
 {
   itpp::bvec unencoded(0);
   itpp::bvec cc_encoded(0);

@@ -25,28 +25,31 @@
 #include <ccsds/pcm_decoder.h>
 #include <ccsds/pcm_encoder.h>
 
-namespace gr {
-  namespace ccsds {
+namespace gr
+{
+namespace ccsds
+{
 
-    void
-    qa_pcm_decoder::t1()
-    {
-      pcm_decoder *decoder = new pcm_decoder(pcm_decoder::BPL);
-      pcm_encoder *encoder = new pcm_encoder(pcm_encoder::BPL);
-      size_t len = 8920;
-      uint8_t alphabet[] = {"ABCDEFGHIJKLMNOPQRSTYVWXYZabcdefghijklmnopqrstyvwxyz"};
-      uint8_t *mid = new uint8_t[10000];
-      uint8_t *rx = new uint8_t[10000];
-      size_t count = 0;
+void
+qa_pcm_decoder::t1 ()
+{
+  pcm_decoder *decoder = new pcm_decoder (pcm_decoder::BPL);
+  pcm_encoder *encoder = new pcm_encoder (pcm_encoder::BPL);
+  size_t len = 8920;
+  uint8_t alphabet[] =
+    { "ABCDEFGHIJKLMNOPQRSTYVWXYZabcdefghijklmnopqrstyvwxyz" };
+  uint8_t *mid = new uint8_t[10000];
+  uint8_t *rx = new uint8_t[10000];
+  size_t count = 0;
 
-      encoder->encode(mid, alphabet, sizeof(alphabet)*8);
-      decoder->decode(rx,mid,sizeof(alphabet)*8*2);
-      delete [] rx;
-      delete [] mid;
-      delete encoder;
-      delete decoder;
-    }
+  encoder->encode_trunc (mid, alphabet, sizeof(alphabet) * 8);
+  decoder->decode_trunc (rx, mid, sizeof(alphabet) * 8 * 2);
+  delete[] rx;
+  delete[] mid;
+  delete encoder;
+  delete decoder;
+}
 
-  } /* namespace ccsds */
+} /* namespace ccsds */
 } /* namespace gr */
 

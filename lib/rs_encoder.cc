@@ -97,7 +97,7 @@ rs_encoder::init_rs_code (int fill)
 }
 
 ssize_t
-rs_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
+rs_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
 {
   ssize_t cnt = 0;
   size_t total_vfill;
@@ -150,9 +150,9 @@ rs_encoder::reset ()
 }
 
 ssize_t
-rs_encoder::encode_once (uint8_t *out, const uint8_t *in, size_t len)
+rs_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
 {
-  return encode(out, in, len);
+  return encode_trunc(out, in, len);
 }
 } /* namespace ccsds */
 } /* namespace gr */

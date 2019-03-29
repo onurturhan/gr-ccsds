@@ -106,7 +106,7 @@ conv_decoder::~conv_decoder ()
 }
 
 ssize_t
-conv_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
+conv_decoder::decode_trunc (uint8_t* out, const uint8_t* in, size_t len)
 {
   return -1;
 }
@@ -118,21 +118,33 @@ conv_decoder::reset ()
 }
 
 ssize_t
-conv_decoder::decode_once (uint8_t* out, const uint8_t* in, size_t len)
+conv_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
 {
   size_t idx = 0;
+  size_t ret;
+  /* Decode the blocks that fill entirelly the whole traceback depth */
   for(size_t i = 0; i < len; i += d_trunc_depth) {
-    size_t ret = decode_block(out + idx, in + i/8);
+    ret = decode_block(out + idx, in + i/8, d_trunc_depth);
     idx += ret;
   }
-  return 0;
+
+  /* Decode any remaining bits */
+  ret = decode_block(out + idx, in + (len / d_trunc_depth) * d_trunc_depth / 8,
+                     len - (len / d_trunc_depth) * d_trunc_depth);
+  idx += ret;
+  return idx;
 }
 
+
+
 size_t
-conv_decoder::decode_block (uint8_t* out, const uint8_t* in)
+conv_decoder::decode_block (uint8_t* out, const uint8_t* in, size_t len)
 {
+  if(len < 2) {
+    return 0;
+  }
   init_viterbi27 (d_vp, d_last_state);
-  for (uint32_t i = 0; i < d_trunc_depth; i += 8) {
+  for (uint32_t i = 0; i < len; i += 8) {
     d_syms[i] = ((in[i / 8] >> 7) & 0x1) * 255;
     d_syms[i + 1] = ((in[i / 8] >> 6) & 0x1) * 255;
     d_syms[i + 2] = ((in[i / 8] >> 5) & 0x1) * 255;
@@ -143,19 +155,19 @@ conv_decoder::decode_block (uint8_t* out, const uint8_t* in)
     d_syms[i + 7] = (in[i / 8] & 0x1) * 255;
   }
 
-  for (uint32_t i = (d_trunc_depth / 8) * 8; i < d_trunc_depth; i++) {
+  for (uint32_t i = (len / 8) * 8; i < len; i++) {
     d_syms[i] = ((in[i / 8] >> (7 - (i % 8))) & 0x1) * 255;
   }
 
-  update_viterbi27_blk(d_vp, d_syms, d_trunc_depth / 2);
+  update_viterbi27_blk(d_vp, d_syms, len / 2);
 
   int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
-                                                 d_trunc_depth / 2);
+                                                 len / 2);
   d_last_state = (uint32_t)state;
 
   /* Repack bits, skipping the first 6 bits if this was the first block */
   uint8_t *bits = d_unpacked;
-  size_t nbits = d_trunc_depth/2;
+  size_t nbits = len / 2;
 
   if(d_first_block) {
     bits+=6;

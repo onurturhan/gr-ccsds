@@ -24,15 +24,17 @@
 #include "qa_pcm_encoder.h"
 #include <ccsds/pcm_encoder.h>
 
-namespace gr {
-  namespace ccsds {
+namespace gr
+{
+namespace ccsds
+{
 
-    void
-    qa_pcm_encoder::t1()
-    {
-      // Put test here
-    }
+void
+qa_pcm_encoder::t1 ()
+{
+  // Put test here
+}
 
-  } /* namespace ccsds */
+} /* namespace ccsds */
 } /* namespace gr */
 
