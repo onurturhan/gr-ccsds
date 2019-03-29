@@ -118,6 +118,12 @@ int chainback_viterbi27(
     }
 }
 
+int
+chainback_viterbi27_unpacked_trunc(void *p,unsigned char *data,unsigned int nbits)
+{
+  return chainback_viterbi27_port_unpacked_trunc(p, data, nbits);
+}
+
 /* Delete instance of a Viterbi decoder */
 void delete_viterbi27(void *p){
     switch(Cpu_mode){

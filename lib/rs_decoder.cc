@@ -28,9 +28,7 @@
 #include <cstring>
 #include <iostream>
 
-extern "C" {
-  #include <fec.h>
-}
+#include <ccsds/libfec/fec.h>
 
 namespace gr
 {

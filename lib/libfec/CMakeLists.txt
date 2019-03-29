@@ -1,46 +1,12 @@
-########################################################################
-# Project setup
-########################################################################
-cmake_minimum_required(VERSION 2.8)
-project(libfec ASM C)
-
-option(BUILD_32BIT_ON_64BIT "Build a 32-bit library on a 64-bit system" OFF)
-
-# Select the release build type by default to get optimization flags
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
-    message(STATUS "Build type not specified: defaulting to release.")
-endif(NOT CMAKE_BUILD_TYPE)
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
-
-if(NOT LIB_INSTALL_DIR)
-    set(LIB_INSTALL_DIR lib)
-endif()
-
-
-########################################################################
-# Version information
-########################################################################
-set(VERSION_INFO_MAJOR  3)
-set(VERSION_INFO_MINOR  0)
-set(VERSION_INFO_PATCH  0)
-
-if(NOT DEFINED VERSION_INFO_EXTRA)
-    set(VERSION_INFO_EXTRA "git")
-endif()
-include(Version)
-
-if(NOT DEFINED VERSION)
-    #set(VERSION "\"${VERSION_INFO_MAJOR}.${VERSION_INFO_MINOR}.${VERSION_INFO_PATCH}\"")
-    set(VERSION "\"${VERSION_INFO}\"")
-endif()
-
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include/ccsds/libfec
+)
 
 ########################################################################
 # Compiler specific setup
 ########################################################################
+option(BUILD_32BIT_ON_64BIT "Build a 32-bit library on a 64-bit system" OFF)
+
 if(BUILD_32BIT_ON_64BIT)
     set(CMAKE_SYSTEM_PROCESSOR "i386")
     set(CMAKE_SIZEOF_VOID_P 4)
@@ -84,13 +50,6 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANGCC)
     endif()
 
 endif()
-
-########################################################################
-# Find build dependencies
-########################################################################
-
-# libm
-find_library(M_LIB m REQUIRED)
 
 
 ########################################################################
@@ -226,46 +185,6 @@ list(APPEND libfec_sources
 )
 
 
-################################################################################
-# Generate pkg-config file
-################################################################################
-foreach(inc ${LIBFEC_INCLUDE_DIR})
-    list(APPEND LIBFEC_PC_CFLAGS "-I${inc}")
-endforeach()
-
-foreach(lib ${LIBFEC_LIBRARY_DIRS})
-    list(APPEND LIBFEC_PC_PRIV_LIBS "-L${lib}")
-endforeach()
-
-set(LIBFEC_PC_PREFIX ${CMAKE_INSTALL_PREFIX})
-set(LIBFEC_PC_EXEC_PREFIX \${prefix})
-set(LIBFEC_PC_LIBDIR \${exec_prefix}/${LIB_INSTALL_DIR})
-set(LIBFEC_PC_INCLUDEDIR \${prefix}/include)
-set(LIBFEC_PC_VERSION ${VERSION})
-set(LIBFEC_PC_LIBS "-lfec")
-
-# Use space-delimiter in the .pc file, rather than CMake's semicolon separator
-string(REPLACE ";" " " LIBFEC_PC_CFLAGS "${LIBFEC_PC_CFLAGS}")
-string(REPLACE ";" " " LIBFEC_PC_LIBS "${LIBFEC_PC_LIBS}")
-
-# Unset these to avoid hard-coded paths in a cross-environment
-if(CMAKE_CROSSCOMPILING)
-    unset(LIBFEC_PC_CFLAGS)
-    unset(LIBFEC_PC_LIBS)
-endif()
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/libfec.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/libfec.pc
-    @ONLY
-)
-
-install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/libfec.pc
-    DESTINATION ${LIB_INSTALL_DIR}/pkgconfig/
-)
-
-
 ########################################################################
 # Setup libraries
 ########################################################################
@@ -273,51 +192,35 @@ install(
 # generate ccsds_tab.c
 add_executable(gen_ccsds gen_ccsds.c init_rs_char.c)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/ccsds_tab.c
-    COMMAND  ${CMAKE_BINARY_DIR}/gen_ccsds > ccsds_tab.c
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ccsds_tab.c
+    COMMAND  ${CMAKE_CURRENT_BINARY_DIR}/gen_ccsds > ccsds_tab.c
     DEPENDS  gen_ccsds
 )
 
 # generate ccsds_tal.c
 add_executable(gen_ccsds_tal gen_ccsds_tal.c)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/ccsds_tal.c
-    COMMAND  ${CMAKE_BINARY_DIR}/gen_ccsds_tal > ccsds_tal.c
+    OUTPUT   ${CMAKE_CURRENT_BINARY_DIR}/ccsds_tal.c
+    COMMAND  ${CMAKE_CURRENT_BINARY_DIR}/gen_ccsds_tal > ccsds_tal.c
     DEPENDS  gen_ccsds_tal
 )
 
 # libfec
-add_library(libfec_shared SHARED ${libfec_sources})
-set_target_properties(libfec_shared PROPERTIES OUTPUT_NAME fec)
-target_link_libraries(libfec_shared ${M_LIB})
+add_library(gnuradio-ccsds-fec SHARED ${libfec_sources}) 
 
+target_link_libraries(gnuradio-ccsds-fec m)
 
-install(TARGETS libfec_shared
-    DESTINATION ${LIB_INSTALL_DIR})
-install(FILES "${PROJECT_SOURCE_DIR}/fec.h"
-    DESTINATION include)
-
-
-########################################################################
-# Create uninstall target
-########################################################################
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
-
-add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-
+set_target_properties(gnuradio-ccsds-fec PROPERTIES DEFINE_SYMBOL "gnuradio_ccsds_EXPORTS")
+if(APPLE)
+    set_target_properties(gnuradio-ccsds-fec PROPERTIES
+        INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib"
+    )
+endif(APPLE)
 
 ########################################################################
-# Print Summary
+# Install built library files
 ########################################################################
-message(STATUS "")
-message(STATUS "##########################################################")
-message(STATUS "## Building for version: ${VERSION}")
-message(STATUS "## Target Architecture:  ${TARGET_ARCH}")
-message(STATUS "## Using install prefix: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "##########################################################")
-message(STATUS "")
+include(GrMiscUtils)
+GR_LIBRARY_FOO(gnuradio-ccsds-fec RUNTIME_COMPONENT "ccsds_runtime" DEVEL_COMPONENT "ccsds_devel")
+
 

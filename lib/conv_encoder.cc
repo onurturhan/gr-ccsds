@@ -26,8 +26,8 @@ namespace gr
 namespace ccsds
 {
 encoder::encoder_sptr
-conv_encoder::make (coding_rate_t cc_rate,
-                     size_t max_frame_len)
+conv_encoder::make (conv_encoder::coding_rate_t cc_rate,
+                    size_t max_frame_len)
 {
   return encoder::encoder_sptr (
   new conv_encoder (cc_rate, max_frame_len));
@@ -66,12 +66,13 @@ conv_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
   size_t return_length = 0;
   d_conv_code.set_start_state(0);
   bytes_to_bvec (unencoded, in, len);
-  d_conv_code.encode_trunc (unencoded, cc_encoded);
+  d_conv_code.encode_tail (unencoded, cc_encoded);
   bvec_to_bytes (d_buffer, cc_encoded);
   if(d_cc_rate == RATE_1_2){
-    return_length = 2 * len;
+
+    return_length = 2 * len + 12;
   /* Invert output of G2*/
-    memcpy(out, d_buffer, (return_length/8)*sizeof(uint8_t));
+    memcpy(out, d_buffer, (return_length / 8 + 1)*sizeof(uint8_t));
     for(size_t i=0; i< return_length/8; i++){
       out[i] ^= 0x40;
       out[i] ^= 0x10;
@@ -205,12 +206,16 @@ conv_encoder::bytes_to_bvec(itpp::bvec &out, const uint8_t* buffer, size_t len)
 void
 conv_encoder::bvec_to_bytes(uint8_t *out, itpp::bvec in)
 {
-  size_t len = in.length ();
+  int len = in.length ();
   itpp::bvec byte(0);
   for (int i = 0; i < len / 8; i++) {
      byte = in.get (i * 8, (i + 1) * 8 - 1);
      out[i] = itpp::bin2dec (byte, true);
-   }
+  }
+  for(int i = (len / 8) * 8; i < len; i++) {
+    out[i/8] = (out[i/8] << 1) | (in.get(i).value() & 0x1);
+  }
+  out[len/8] <<= 8 - (len - (len/8) * 8);
 }
 
 }

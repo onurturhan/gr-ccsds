@@ -54,6 +54,7 @@ public:
 
   static encoder::encoder_sptr
   make (coding_rate_t cc_rate, size_t max_frame_len);
+
   conv_encoder(coding_rate_t cc_rate, size_t max_frame_len);
   ~conv_encoder();
 

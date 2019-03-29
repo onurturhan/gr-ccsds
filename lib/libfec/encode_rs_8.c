@@ -2,6 +2,7 @@
  * Copyright 2004, Phil Karn, KA9Q
  * May be used under the terms of the GNU Lesser General Public License (LGPL)
  */
+#include <ccsds/api.h>
 #include <string.h>
 #include "fixed.h"
 #ifdef __VEC__
@@ -19,7 +20,7 @@ static void encode_rs_8_av(data_t *data, data_t *parity,int pad);
 int cpu_features(void);
 #endif
 
-void encode_rs_8(data_t *data, data_t *parity,int pad){
+CCSDS_API void encode_rs_8(data_t *data, data_t *parity,int pad){
   if(cpu_mode == UNKNOWN){
 #ifdef __i386__
     int f;

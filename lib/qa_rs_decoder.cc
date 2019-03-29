@@ -26,9 +26,7 @@
 #include <ccsds/rs_encoder.h>
 #include <random>
 
-extern "C" {
-  #include <fec.h>
-}
+#include <ccsds/libfec/fec.h>
 
 namespace gr
 {

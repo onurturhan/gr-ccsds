@@ -7,12 +7,13 @@
 #include <stdio.h>
 #endif
 
+#include <ccsds/api.h>
 #include <string.h>
 
 #include "char.h"
 #include "rs-common.h"
 
-int decode_rs_char(void *p, data_t *data, int *eras_pos, int no_eras){
+CCSDS_API int decode_rs_char(void *p, data_t *data, int *eras_pos, int no_eras){
   int retval;
   struct rs *rs = (struct rs *)p;
  

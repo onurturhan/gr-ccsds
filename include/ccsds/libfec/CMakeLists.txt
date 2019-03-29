@@ -18,20 +18,9 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-
-add_subdirectory(libfec)
 ########################################################################
 # Install public header files
 ########################################################################
 install(FILES
-    api.h
-    encoder.h
-    decoder.h
-    conv_decoder.h
-    conv_encoder.h
-    rs_encoder.h
-    rs_decoder.h
-    turbo_encoder.h
-    pcm_encoder.h
-    pcm_decoder.h DESTINATION include/ccsds
+    fec.h DESTINATION include/ccsds/libfec
 )

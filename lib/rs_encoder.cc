@@ -19,17 +19,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <gnuradio/io_signature.h>
 #include <ccsds/rs_encoder.h>
-
-extern "C"
-{
-#include <fec.h>
-}
+#include <ccsds/libfec/fec.h>
 
 namespace gr
 {

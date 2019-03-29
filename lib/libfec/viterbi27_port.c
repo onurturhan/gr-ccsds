@@ -23,6 +23,7 @@ struct v27 {
   decision_t *dp;          /* Pointer to current decision */
   metric_t *old_metrics,*new_metrics; /* Pointers to path metrics, swapped on every bit */
   decision_t *decisions;   /* Beginning of decisions for block */
+  char first_traceback;
 };
 
 /* Initialize Viterbi decoder for start of new frame */
@@ -66,6 +67,7 @@ void *create_viterbi27_port(int len){
     free(vp);
     return NULL;
   }
+  vp->first_traceback = 1;
   init_viterbi27_port(vp,0);
 
   return vp;
@@ -101,6 +103,40 @@ int chainback_viterbi27_port(
     data[nbits>>3] = endstate = (endstate >> 1) | (k << 7);
   }
   return 0;
+}
+
+int
+chainback_viterbi27_port_unpacked_trunc(void *p,unsigned char *data,unsigned int nbits)
+{
+  struct v27 *vp = p;
+  decision_t *d;
+
+  if (p == NULL)
+    return -1;
+  d = vp->decisions;
+
+  /* Find the state with the minimum weight */
+  unsigned int min = vp->old_metrics->w[0];
+  int min_idx = 0;
+  for(int i = 1; i < 64; i++) {
+    if(vp->old_metrics->w[i] < min) {
+      min = vp->old_metrics->w[i];
+      min_idx = i;
+    }
+  }
+  unsigned int endstate = min_idx;
+
+  endstate %= 64;
+  endstate <<= 2;
+
+  while (nbits-- != 0) {
+    int k;
+    k = (d[nbits].w[(endstate >> 2) / 32] >> ((endstate >> 2) % 32)) & 1;
+    endstate = (endstate >> 1) | (k << 7);
+    data[nbits] = k;
+  }
+
+  return min_idx;
 }
 
 /* Delete instance of a Viterbi decoder */

@@ -3,12 +3,13 @@
  * Copyright 2002 Phil Karn, KA9Q
  * May be used under the terms of the GNU Lesser General Public License (LGPL)
  */
+#include <ccsds/api.h>
 #include <stdlib.h>
 
 #include "char.h"
 #include "rs-common.h"
 
-void free_rs_char(void *p){
+CCSDS_API void free_rs_char(void *p){
   struct rs *rs = (struct rs *)p;
 
   free(rs->alpha_to);
@@ -25,7 +26,7 @@ void free_rs_char(void *p){
  * nroots = RS code generator polynomial degree (number of roots)
  * pad = padding bytes at front of shortened block
  */
-void *init_rs_char(int symsize,int gfpoly,int fcr,int prim,
+CCSDS_API void *init_rs_char(int symsize,int gfpoly,int fcr,int prim,
 	int nroots,int pad){
   struct rs *rs;
 

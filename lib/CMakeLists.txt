@@ -23,9 +23,10 @@
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 
+add_subdirectory(libfec)
+
 include_directories(
     ${Boost_INCLUDE_DIR}
-    ${FEC_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -44,6 +45,7 @@ list(APPEND ccsds_sources
     pcm_decoder.cc
 )
 
+
 set(ccsds_sources "${ccsds_sources}" PARENT_SCOPE)
 if(NOT ccsds_sources)
     MESSAGE(STATUS "No C++ sources... skipping lib/")
@@ -51,11 +53,12 @@ if(NOT ccsds_sources)
 endif(NOT ccsds_sources)
 
 add_library(gnuradio-ccsds SHARED ${ccsds_sources})
+
 target_link_libraries(gnuradio-ccsds
+    gnuradio-ccsds-fec
     ${Boost_LIBRARIES}
     ${GNURADIO_ALL_LIBRARIES}
     ${ITPP_LIBRARIES}
-    ${FEC_LIBRARIES}
 )
 
 set_target_properties(gnuradio-ccsds PROPERTIES DEFINE_SYMBOL "gnuradio_ccsds_EXPORTS")
@@ -97,12 +100,11 @@ include_directories(${ITPP_INCLUDE_DIRS})
 add_executable(test-ccsds ${test_ccsds_sources})
 
 target_link_libraries(
-    test-ccsds
+    test-ccsds 
     ${GNURADIO_RUNTIME_LIBRARIES}
     ${Boost_LIBRARIES}
     ${CPPUNIT_LIBRARIES}
     ${ITPP_LIBRARIES}
-    ${FEC_LIBRARIES}
     gnuradio-ccsds
 )
 

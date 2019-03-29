@@ -21,8 +21,8 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 2.6)
-project(gr-ccsds CXX C)
+cmake_minimum_required(VERSION 3.0)
+project(gr-ccsds C ASM CXX)
 enable_testing()
 
 #install to PyBOMBS target prefix if defined
@@ -152,42 +152,6 @@ endif()
 
 find_package(ITPP REQUIRED)
 
-# Try to find the libfec. if it is not available, build it and install it
-find_package(Fec)
-if(NOT FEC_FOUND)
-    message(WARNING "libfec is not installed. The internal libfec will be automatically build and install.")
-    include(ExternalProject)
-    ExternalProject_Add(FEC_EXTERNAL
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libfec
-        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/libfec
-        CMAKE_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
-                   "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-                   "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-        INSTALL_COMMAND ""
-    )
-
-    ExternalProject_Get_Property(FEC_EXTERNAL binary_dir)
-    add_library(fec SHARED IMPORTED)
-
-    set_property(TARGET fec PROPERTY IMPORTED_LOCATION ${install_dir}/libfec.so)
-
-    add_dependencies(fec FEC_EXTERNAL)
-    set(FEC_LIBRARIES "${binary_dir}/libfec.so")
-    set(FEC_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/libfec")
-
-    # Install the header and the library in the standard places
-    install(FILES
-        "${FEC_INCLUDE_DIRS}/fec.h"
-        DESTINATION "include"
-    )
-    install(FILES
-        ${FEC_LIBRARIES}
-        DESTINATION lib${LIB_SUFFIX}
-    )
-else()
-    add_library(fec INTERFACE)
-endif()
-
 # Memtest support
 option(ENABLE_MEMCHECK 
     "Enable a full memory check on the Unit testing (valgrind tool required)" ON
@@ -214,8 +178,12 @@ endif(DOXYGEN_FOUND)
 include_directories(
     ${CMAKE_SOURCE_DIR}/lib
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/libfec
+    ${CMAKE_SOURCE_DIR}/lib/libfec
     ${CMAKE_BINARY_DIR}/lib
     ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_BINARY_DIR}/include/ccsds/libfec
+    ${CMAKE_BINARY_DIR}/lib/libfec
     ${Boost_INCLUDE_DIRS}
     ${CPPUNIT_INCLUDE_DIRS}
     ${GNURADIO_ALL_INCLUDE_DIRS}

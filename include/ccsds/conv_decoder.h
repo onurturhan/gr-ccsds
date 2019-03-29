@@ -49,7 +49,7 @@ public:
   make(coding_rate_t coding_rate, size_t max_frame_len);
 
   conv_decoder (coding_rate_t coding_rate, size_t max_frame_len);
-  ~conv_decoder ();
+  virtual ~conv_decoder ();
 
   void
   reset();
@@ -62,7 +62,16 @@ public:
 
 private:
   const coding_rate_t   d_rate;
+  size_t                d_trunc_depth;
+  uint8_t               *d_syms;
+  uint8_t               *d_unpacked;
+  uint8_t               d_packed_b;
+  bool                  d_first_block;
+  void                  *d_vp;
+  uint32_t              d_last_state;
 
+  size_t
+  decode_block(uint8_t *out, const uint8_t *in);
 };
 
 } // namespace ccsds
