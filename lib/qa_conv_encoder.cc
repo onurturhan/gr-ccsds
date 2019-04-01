@@ -38,7 +38,12 @@ qa_conv_encoder::t1 ()
   uint8_t *rx = new uint8_t[255];
   memset (rx, 0, 255);
 
-  ssize_t ret = conv->encode (rx, tx, sizeof(tx) * 8);
+  for(int i =0; i<2; i++){
+    ssize_t ret = conv->encode_trunc (rx, tx, sizeof(tx) * 8);
+  }
+  conv->finalize(rx);
+
+  conv->encode(rx, tx, sizeof(tx) * 8);
   delete[] rx;
 }
 

@@ -33,7 +33,8 @@ conv_encoder::make (conv_encoder::coding_rate_t cc_rate,
   new conv_encoder (cc_rate, max_frame_len));
 }
 
-conv_encoder::conv_encoder (coding_rate_t cc_rate, size_t max_frame_len)
+conv_encoder::conv_encoder (coding_rate_t cc_rate, size_t max_frame_len):
+    encoder (max_frame_len)
 {
   d_cc_rate = cc_rate;
   d_cc_generator.set_length (2);
@@ -43,6 +44,7 @@ conv_encoder::conv_encoder (coding_rate_t cc_rate, size_t max_frame_len)
   d_conv_code.init_encoder ();
   d_conv_code.set_start_state (0);
   d_buffer = new uint8_t[max_frame_len];
+  d_punctured_index = 0;
 }
 
 conv_encoder::~conv_encoder ()
@@ -55,7 +57,15 @@ ssize_t
 conv_encoder::encode (uint8_t *out, const uint8_t *in,
                            size_t len)
 {
-  return 0;
+  itpp::bvec unencoded(0);
+  itpp::bvec cc_encoded(0);
+  size_t return_length = 0;
+  bytes_to_bvec (unencoded, in, len);
+  d_conv_code.encode_tail (unencoded, cc_encoded);
+  bvec_to_bytes (d_buffer, cc_encoded);
+  return_length = puncture(out, len+6);
+  memset(d_buffer, 0, max_frame_len()*sizeof(uint8_t));
+  return return_length;
 }
 
 ssize_t
@@ -64,132 +74,35 @@ conv_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
   itpp::bvec unencoded(0);
   itpp::bvec cc_encoded(0);
   size_t return_length = 0;
-  d_conv_code.set_start_state(0);
   bytes_to_bvec (unencoded, in, len);
-  d_conv_code.encode_tail (unencoded, cc_encoded);
+  d_conv_code.encode_trunc (unencoded, cc_encoded);
   bvec_to_bytes (d_buffer, cc_encoded);
-  if(d_cc_rate == RATE_1_2){
+  return_length = puncture(out, len);
+  memset(d_buffer, 0, max_frame_len()*sizeof(uint8_t));
+  return return_length;
+}
 
-    return_length = 2 * len + 12;
-  /* Invert output of G2*/
-    memcpy(out, d_buffer, (return_length / 8 + 1)*sizeof(uint8_t));
-    for(size_t i=0; i< return_length/8; i++){
-      out[i] ^= 0x40;
-      out[i] ^= 0x10;
-      out[i] ^= 0x04;
-      out[i] ^= 0x01;
-    }
-  }
-  else if(d_cc_rate == RATE_2_3){
-    size_t out_buff_index = 0;
-    int byte_index = 7;
-    for(size_t i = 0; i < len*2; i++){
-      if( (i % 4 == 2))
-      {
-        continue;
-      }
-      else{
-        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
-        byte_index--;
-        if(byte_index < 0){
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
-        }
-      }
-    }
-    return_length = len + len/2;
-  }
-  else if(d_cc_rate == RATE_3_4){
-    size_t out_buff_index = 0;
-    int byte_index = 7;
-    for(size_t i = 0; i < len*2; i++){
-      if( (i % 6 == 2) ||
-          (i % 6 == 5))
-      {
-        continue;
-      }
-      else{
-        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
-        byte_index--;
-        if(byte_index < 0){
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
-        }
-      }
-    }
-    if(len % 3 == 0){
-      return_length = len + len/3;
-    }
-    else{
-      return_length = len + len/3 + (len%3) + 1;
-    }
-  }
-  else if(d_cc_rate == RATE_5_6){
-    size_t out_buff_index = 0;
-    int byte_index = 7;
-    for(size_t i = 0; i < len*2; i++){
-      if( (i % 10 == 2) ||
-          (i % 10 == 5) ||
-          (i % 10 == 6) ||
-          (i % 10 == 9))
-      {
-        continue;
-      }
-      else{
-        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
-        byte_index--;
-        if(byte_index < 0){
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
-        }
-      }
-    }
-    if(len % 5 == 0){
-      return_length = len + len/5;
-    }
-    else{
-      return_length = len + len/5 + (len%5) + 1;
-    }
-  }
-  else if(d_cc_rate == RATE_7_8){
-    size_t out_buff_index = 0;
-    int byte_index = 7;
-    for(size_t i = 0; i < len*2; i++){
-      if( (i % 14 == 2) ||
-          (i % 14 == 4) ||
-          (i % 14 == 6) ||
-          (i % 14 == 9) ||
-          (i % 14 == 10)||
-          (i % 14 == 13))
-      {
-        continue;
-      }
-      else{
-        out[out_buff_index] |= ((d_buffer[i/8] >> (7 - i%8)) & 1) << byte_index;
-        byte_index--;
-        if(byte_index < 0){
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
-        }
-      }
-      if(len % 7 == 0){
-        return_length = len + len/7;
-      }
-      else{
-        return_length = len + len/7 + (len%7) + 1;
-      }
-    }
-  }
+ssize_t
+conv_encoder::finalize(uint8_t* out){
+  size_t len = 6;
+  itpp::bvec unencoded(0);
+  itpp::bvec cc_encoded(0);
+  unencoded.set_length(6,false);
+  unencoded.zeros();
+  size_t return_length = 0;
+  d_conv_code.encode_trunc (unencoded, cc_encoded);
+  bvec_to_bytes (d_buffer, cc_encoded);
+  return_length = puncture(out, 6);
+  memset(d_buffer, 0, max_frame_len()*sizeof(uint8_t));
+  reset();
   return return_length;
 }
 
 void
 conv_encoder::reset ()
 {
+  d_conv_code.set_start_state(0);
+  d_punctured_index = 0;
   return;
 }
 
@@ -216,6 +129,129 @@ conv_encoder::bvec_to_bytes(uint8_t *out, itpp::bvec in)
     out[i/8] = (out[i/8] << 1) | (in.get(i).value() & 0x1);
   }
   out[len/8] <<= 8 - (len - (len/8) * 8);
+}
+
+size_t
+conv_encoder::puncture(uint8_t* out, size_t init_length){
+  size_t i;
+  size_t return_length = 0;
+  if(d_cc_rate == RATE_1_2){
+    return_length = 2 * init_length;
+  /* Invert output of G2*/
+    memcpy(out, d_buffer, (return_length / 8 + 1)*sizeof(uint8_t));
+    for(i=0; i< return_length/8; i++){
+      out[i] ^= 0x40;
+      out[i] ^= 0x10;
+      out[i] ^= 0x04;
+      out[i] ^= 0x01;
+    }
+  }
+  else if(d_cc_rate == RATE_2_3){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(i = d_punctured_index; i <d_punctured_index + init_length*2; i++){
+      if( (i % 4 == 2))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[(i-d_punctured_index)/8] >> (7 - (i-d_punctured_index)%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    return_length = init_length + init_length/2;
+  }
+  else if(d_cc_rate == RATE_3_4){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(i = d_punctured_index; i < d_punctured_index + init_length*2; i++){
+      if( (i % 6 == 2) ||
+          (i % 6 == 5))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[(i-d_punctured_index)/8] >> (7 - (i-d_punctured_index)%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    if(init_length % 3 == 0){
+      return_length = init_length + init_length/3;
+    }
+    else{
+      return_length = init_length + init_length/3 + (init_length%3) + 1;
+    }
+  }
+  else if(d_cc_rate == RATE_5_6){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(i = d_punctured_index; i < d_punctured_index + init_length*2; i++){
+      if( (i % 10 == 2) ||
+          (i % 10 == 5) ||
+          (i % 10 == 6) ||
+          (i % 10 == 9))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[(i-d_punctured_index)/8] >> (7 - (i-d_punctured_index)%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+    }
+    if(init_length % 5 == 0){
+      return_length = init_length + init_length/5;
+    }
+    else{
+      return_length = init_length + init_length/5 + (init_length%5) + 1;
+    }
+  }
+  else if(d_cc_rate == RATE_7_8){
+    size_t out_buff_index = 0;
+    int byte_index = 7;
+    for(i = d_punctured_index; i < d_punctured_index + init_length*2; i++){
+      if( (i % 14 == 2) ||
+          (i % 14 == 4) ||
+          (i % 14 == 6) ||
+          (i % 14 == 9) ||
+          (i % 14 == 10)||
+          (i % 14 == 13))
+      {
+        continue;
+      }
+      else{
+        out[out_buff_index] |= ((d_buffer[(i-d_punctured_index)/8] >> (7 - (i-d_punctured_index)%8)) & 1) << byte_index;
+        byte_index--;
+        if(byte_index < 0){
+          byte_index = 7;
+          out_buff_index++;
+          out[out_buff_index] = 0;
+        }
+      }
+      if(init_length % 7 == 0){
+        return_length = init_length + init_length/7;
+      }
+      else{
+        return_length = init_length + init_length/7 + (init_length%7) + 1;
+      }
+    }
+  }
+  d_punctured_index = i;
+  return return_length;
 }
 
 }
