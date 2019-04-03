@@ -63,6 +63,7 @@ public:
 private:
   const coding_rate_t   d_rate;
   size_t                d_trunc_depth;
+  size_t                d_long_trunc_depth;
   uint8_t               *d_syms;
   uint8_t               *d_unpacked;
   uint8_t               d_packed_b;

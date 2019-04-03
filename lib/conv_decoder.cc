@@ -86,8 +86,15 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
   while(d_trunc_depth % 16) {
     d_trunc_depth++;
   }
-  d_syms = new uint8_t[d_trunc_depth];
-  d_unpacked = new uint8_t[d_trunc_depth / 2];
+
+  /*
+   * In some cases, when the remaining traceback depth is small, it is better
+   * to let the trellis evolve further a bit, rather than doing traceback
+   * and reset
+   */
+  d_long_trunc_depth = d_trunc_depth + d_trunc_depth / 4;
+  d_syms = new uint8_t[d_long_trunc_depth];
+  d_unpacked = new uint8_t[d_long_trunc_depth / 2];
 
   int polys[2] = { V27POLYB, -V27POLYA };
   d_vp = create_viterbi27 (d_trunc_depth / 2);
@@ -121,10 +128,17 @@ ssize_t
 conv_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
 {
   size_t idx = 0;
+  size_t remaining = len;
   size_t ret;
-  /* Decode the blocks that fill entirelly the whole traceback depth */
+  /* Decode the blocks that fill entirely the whole traceback depth */
   for(size_t i = 0; i < len; i += d_trunc_depth) {
+    if(remaining < d_long_trunc_depth) {
+      ret = decode_block(out + idx, in + i/8, remaining);
+      idx += ret;
+      return idx;
+    }
     ret = decode_block(out + idx, in + i/8, d_trunc_depth);
+    remaining -= d_trunc_depth;
     idx += ret;
   }
 
@@ -182,7 +196,7 @@ conv_decoder::decode_block (uint8_t* out, const uint8_t* in, size_t len)
   for (size_t i = 0; i < nbits; i++) {
     d_packed_b = (d_packed_b << 1) | bits[i];
     /*
-     * 2 bits are already, decoded from the previous iteration, due to the fact
+     * 2 bits are already decoded from the previous iteration, due to the fact
      * that we have discarded the first 6 bits
      */
     out[(i + 2) >> 3] = d_packed_b;

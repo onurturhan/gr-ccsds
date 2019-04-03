@@ -34,16 +34,19 @@ class qa_conv_decoder : public CppUnit::TestCase
 {
 public:
   CPPUNIT_TEST_SUITE(qa_conv_decoder);
-  CPPUNIT_TEST(t1);
-  CPPUNIT_TEST(t2);
+  CPPUNIT_TEST(simple_decode);
+  CPPUNIT_TEST(decode_random_size);
   CPPUNIT_TEST_SUITE_END();
 
 private:
   void
-  t1 ();
+  simple_decode ();
 
   void
-  t2 ();
+  decode_random_size ();
+
+  void
+  test_decode(size_t msg_len);
 };
 
 } /* namespace ccsds */
