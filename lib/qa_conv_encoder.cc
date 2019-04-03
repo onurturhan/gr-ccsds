@@ -34,17 +34,16 @@ qa_conv_encoder::t1 ()
 {
   encoder::encoder_sptr conv = conv_encoder::make (conv_encoder::RATE_1_2,
                                                    4096);
-  uint8_t tx[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  uint8_t *rx = new uint8_t[255];
-  memset (rx, 0, 255);
-
-  for(int i =0; i<2; i++){
-    ssize_t ret = conv->encode_trunc (rx, tx, sizeof(tx) * 8);
+  uint8_t tx[20];
+  for(int i=0; i< 20; i++){
+    tx[i] = 0x00;
   }
-  conv->finalize(rx);
+  uint8_t rx[255];
+  memset (rx, 0xff, 255);
 
-  conv->encode(rx, tx, sizeof(tx) * 8);
-  delete[] rx;
+
+  conv->encode_trunc(rx, tx, sizeof(tx) * 8);
+  volatile size_t len = conv->finalize(&rx[40]);
 }
 
 } /* namespace ccsds */

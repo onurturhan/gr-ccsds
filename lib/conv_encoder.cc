@@ -145,6 +145,22 @@ conv_encoder::puncture(uint8_t* out, size_t init_length){
       out[i] ^= 0x04;
       out[i] ^= 0x01;
     }
+    if(return_length%8 != 0){
+      switch(return_length%8){
+        case 2:
+          out[return_length/8] ^= 0x40;
+          break;
+        case 4:
+          out[return_length/8] ^= 0x40;
+          out[return_length/8] ^= 0x10;
+          break;
+        case 6:
+          out[return_length/8] ^= 0x40;
+          out[return_length/8] ^= 0x10;
+          out[return_length/8] ^= 0x04;
+          break;
+      }
+    }
   }
   else if(d_cc_rate == RATE_2_3){
     size_t out_buff_index = 0;
