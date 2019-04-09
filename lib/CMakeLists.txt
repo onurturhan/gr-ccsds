@@ -45,6 +45,7 @@ list(APPEND ccsds_sources
     pcm_decoder.cc
     ccsds_modulator_impl.cc
     ccsds_constellation.cc
+    ccsds_demodulator_impl.cc
 )
 
 
@@ -88,6 +89,7 @@ include_directories(${CPPUNIT_INCLUDE_DIRS})
 list(APPEND test_ccsds_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test_ccsds.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds_demodulator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_ccsds_modulator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_decoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_encoder.cc

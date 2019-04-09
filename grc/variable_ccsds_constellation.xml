@@ -23,9 +23,5 @@ ccsds.ccsds_constellation_$(type)()
 		  <name>QPSK</name>
 		  <key>qpsk</key>
 	  </option>
-	  <option>
-		  <name>ΟQPSK</name>
-		  <key>oqpsk</key>
-	  </option>
   </param>
 </block>

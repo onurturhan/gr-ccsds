@@ -35,5 +35,6 @@ install(FILES
     pcm_encoder.h
     pcm_decoder.h
     ccsds_modulator.h
-    ccsds_constellation.h DESTINATION include/ccsds
+    ccsds_constellation.h
+    ccsds_demodulator.h DESTINATION include/ccsds
 )

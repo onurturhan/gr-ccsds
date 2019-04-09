@@ -2,7 +2,7 @@
 /*
  * gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
  *
- *  Copyright (C) 2018, 2019
+ *  Copyright (C) 2019
  *  Libre Space Foundation <https://libre.space>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,23 +19,38 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gnuradio/attributes.h>
-#include <cppunit/TestAssert.h>
-#include "qa_pcm_decoder.h"
-#include <ccsds/pcm_decoder.h>
-#include <ccsds/pcm_encoder.h>
+#ifndef _QA_CCSDS_DEMODULATOR_H_
+#define _QA_CCSDS_DEMODULATOR_H_
 
-namespace gr
-{
-namespace ccsds
-{
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/TestCase.h>
 
-void
-qa_pcm_decoder::t1 ()
-{
+namespace gr {
+  namespace ccsds {
 
-}
+    class qa_ccsds_demodulator : public CppUnit::TestCase
+    {
+    public:
+      CPPUNIT_TEST_SUITE(qa_ccsds_demodulator);
+      CPPUNIT_TEST(bpsk_uncoded);
+      CPPUNIT_TEST(bpsk_nrzs);
+      CPPUNIT_TEST(bpsk_nrzm);
+      CPPUNIT_TEST(qpsk_uncoded);
+      CPPUNIT_TEST(qpsk_nrzm);
+      CPPUNIT_TEST(qpsk_nrzs);
+      CPPUNIT_TEST_SUITE_END();
 
-} /* namespace ccsds */
+    private:
+      void bpsk_uncoded();
+      void bpsk_nrzs();
+      void bpsk_nrzm();
+      void qpsk_uncoded();
+      void qpsk_nrzm();
+      void qpsk_nrzs();
+    };
+
+  } /* namespace ccsds */
 } /* namespace gr */
+
+#endif /* _QA_CCSDS_DEMODULATOR_H_ */
 

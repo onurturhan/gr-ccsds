@@ -31,12 +31,6 @@ namespace ccsds {
 class CCSDS_API pcm_decoder
 {
 public:
-//  typedef enum{
-//    NRZ_L = 0,
-//    NRZ_M,
-//    NRZ_S,
-//    BPL
-//  }pcm_type_t;
 
   pcm_decoder(pcm_type_t type);
   ~pcm_decoder();
@@ -49,7 +43,7 @@ public:
    * @param in     the input buffer
    * @param length the length of the input in bits
    */
-  ssize_t decode_trunc(uint8_t* out, uint8_t* in, size_t length);
+  ssize_t decode_trunc(int8_t* out, int8_t* in, size_t length);
 
   /**
    * Decode input buffer according to a given Pulse Code Modulation
@@ -58,11 +52,15 @@ public:
    * @param in     the input buffer
    * @param length the length of the input in bits
    */
-  ssize_t decode(uint8_t* out, uint8_t* in, size_t length);
+  ssize_t decode(int8_t* out, int8_t* in, size_t length);
 
 private:
   pcm_type_t d_type;
-  uint8_t    d_prev_bit;
+  int8_t    d_prev_bit;
+
+  int8_t remap (int8_t point, int8_t decision);
+
+  ssize_t pcm(int8_t* out, int8_t* in, size_t length);
 
 };
 

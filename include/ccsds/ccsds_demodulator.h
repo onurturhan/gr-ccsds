@@ -19,34 +19,42 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gnuradio/attributes.h>
-#include <cppunit/TestAssert.h>
-#include "qa_conv_encoder.h"
-#include <ccsds/conv_encoder.h>
+#ifndef INCLUDED_CCSDS_CCSDS_DEMODULATOR_H
+#define INCLUDED_CCSDS_CCSDS_DEMODULATOR_H
+
+#include <ccsds/api.h>
+#include <ccsds/ccsds_constellation.h>
+#include <gnuradio/block.h>
 
 namespace gr
 {
 namespace ccsds
 {
 
-void
-qa_conv_encoder::t1 ()
+/*!
+ * \brief <+description of block+>
+ * \ingroup ccsds
+ *
+ */
+class CCSDS_API ccsds_demodulator : virtual public gr::block
 {
-  encoder::encoder_sptr conv = conv_encoder::make (conv_encoder::RATE_2_3,
-                                                   4096);
-  uint8_t tx[20];
-  for(int i=0; i< 20; i++){
-    tx[i] = 0xff;
-  }
-  uint8_t rx[255];
-  memset (rx, 0xff, 255);
+public:
+  typedef boost::shared_ptr<ccsds_demodulator> sptr;
 
+  /*!
+   * \brief Return a shared_ptr to a new instance of ccsds::ccsds_demodulator.
+   *
+   * To avoid accidental use of raw pointers, ccsds::ccsds_demodulator's
+   * constructor is in a private implementation
+   * class. ccsds::ccsds_demodulator::make is the public interface for
+   * creating new instances.
+   */
+  static sptr
+  make (ccsds::ccsds_constellation_sptr constellation, uint8_t pcm);
+};
 
-  conv->encode(rx, tx, sizeof(tx) * 8);
-  volatile size_t len = conv->finalize(&rx[40]);
-  int i =0;
-}
+} // namespace ccsds
+} // namespace gr
 
-} /* namespace ccsds */
-} /* namespace gr */
+#endif /* INCLUDED_CCSDS_CCSDS_DEMODULATOR_H */
 

@@ -55,6 +55,8 @@ ccsds_modulator_impl::ccsds_modulator_impl(ccsds::ccsds_constellation_sptr const
   else if (d_constellation->get_mod_type() == OQPSK || d_constellation->get_mod_type() == QPSK){
     d_bits_per_symbol = 2;
   }
+  set_max_noutput_items(8192);
+  volatile int max = max_noutput_items();
   d_pcm_buffer = (uint8_t*)malloc(max_noutput_items()*sizeof(uint8_t));
   message_port_register_in(d_pdu_port);
   set_msg_handler(d_pdu_port,
@@ -81,20 +83,18 @@ ccsds_modulator_impl::work(int noutput_items,
   if(d_buffers.size() == 0){
     return 0;
   }
-  size_t noutput_items_mult8 = noutput_items/8;
-  noutput_items_mult8 = noutput_items_mult8 * 8;
-  if(noutput_items_mult8 == 0){
+  if(noutput_items%2 !=0 && d_pcm_rate == 2){
     return 0;
   }
   size_t return_items = 0;
   if(d_remaining == 0){
-    d_remaining = pmt::blob_length(d_buffers.front()) * 8;
-
+    d_remaining = pmt::blob_length(d_buffers.front());
   }
   ssize_t ret_pcm_len = 0;
   uint8_t* ptr = (uint8_t*)pmt::blob_data(d_buffers.front());
-  if((d_remaining * d_pcm_rate)/d_bits_per_symbol <= noutput_items_mult8){
-    ret_pcm_len = d_pcm.encode(d_pcm_buffer, ptr, d_remaining);
+  if((d_remaining * d_pcm_rate)/d_bits_per_symbol <= noutput_items){
+
+    ret_pcm_len = d_pcm.encode_trunc(d_pcm_buffer, &ptr[d_tx_index], d_remaining);
     if(ret_pcm_len < 0){
       return 0;
     }
@@ -102,6 +102,7 @@ ccsds_modulator_impl::work(int noutput_items,
       d_oqpsk_symbol = d_pcm_buffer[0] >> 6;
     }
     modulate_input(out, d_remaining * d_pcm_rate);
+
     return_items = (d_remaining * d_pcm_rate)/d_bits_per_symbol;
     d_remaining = 0;
     d_tx_index = 0;
@@ -109,17 +110,17 @@ ccsds_modulator_impl::work(int noutput_items,
     d_buffers.pop_front();
   }
   else{
-    ret_pcm_len = d_pcm.encode(d_pcm_buffer, &ptr[d_tx_index], (noutput_items_mult8 * d_bits_per_symbol)/d_pcm_rate);
+    ret_pcm_len = d_pcm.encode_trunc(d_pcm_buffer, &ptr[d_tx_index], (noutput_items * d_bits_per_symbol)/d_pcm_rate);
     if(ret_pcm_len < 0){
       return 0;
     }
     if(d_constellation->get_mod_type() == OQPSK && d_oqpsk_symbol < 0){
-      d_oqpsk_symbol = d_pcm_buffer[0] >> 6;
+      d_oqpsk_symbol = 0;
     }
-    modulate_input(out, noutput_items_mult8*d_bits_per_symbol);
-    return_items = noutput_items_mult8;
-    d_remaining -= (noutput_items_mult8 * d_bits_per_symbol)/d_pcm_rate;
-    d_tx_index += (noutput_items_mult8 * d_bits_per_symbol)/d_pcm_rate/8;
+    modulate_input(out, noutput_items*d_bits_per_symbol);
+    return_items = noutput_items;
+    d_remaining -= (noutput_items * d_bits_per_symbol)/d_pcm_rate;
+    d_tx_index += (noutput_items * d_bits_per_symbol)/d_pcm_rate;
   }
   return return_items;
 }
@@ -131,33 +132,96 @@ ccsds_modulator_impl::handle_pdu(pmt::pmt_t pdu_in){
 
 void
 ccsds_modulator_impl::modulate_input(gr_complex* out, size_t length){
-  switch(d_constellation->get_mod_type()){
+  uint8_t symbol = 0;
+  switch (d_constellation->get_mod_type ())
+    {
     case BPSK:
-      for(size_t i = 0; i< length; i++){
-        if(d_pcm_buffer[i/8] & (1 << (7 - i%8))){
-          out[i] = d_constellation->get_const_pts()[1];
+      if (d_pcm_rate == 1) {
+        for (size_t i = 0; i < length; i++) {
+          //printf("%d ",d_pcm_buffer[i]);
+          if (d_pcm_buffer[i]) {
+            out[i] = d_constellation->get_const_pts ()[1];
+          }
+          else {
+            out[i] = d_constellation->get_const_pts ()[0];
+          }
         }
-        else{
-          out[i] = d_constellation->get_const_pts()[0];
+      }
+      else if (d_pcm_rate == 2) {
+        for (size_t i = 0; i < length*2; i++) {
+          if (d_pcm_buffer[i/2] & (1 << (1 - (i % 2)))) {
+            out[i] = d_constellation->get_const_pts ()[1];
+          }
+          else {
+            out[i] = d_constellation->get_const_pts ()[0];
+          }
         }
       }
       break;
     case QPSK:
-      uint8_t symbol;
-      for(size_t i = 0; i< length; i+=2){
-        symbol = (d_pcm_buffer[i/8] >> (6 - i%8)) & 0x03;
-        out[i] = d_constellation->get_const_pts()[symbol];
+      if (d_pcm_rate == 1) {
+        for(size_t i = 0; i< length; i++){
+          if(i%2 == 0){
+            symbol = d_pcm_buffer[i];
+          }
+          else if(i%2 == 1){
+            symbol = (symbol << 1) | d_pcm_buffer[i];
+            if(symbol == 0){
+              out[i/2] = d_constellation->get_const_pts()[0];
+            }
+            else if (symbol == 1){
+              out[i/2] = d_constellation->get_const_pts()[1];
+            }
+            else if (symbol == 2){
+              out[i/2] = d_constellation->get_const_pts()[2];
+            }
+            else if (symbol == 3){
+              out[i/2] = d_constellation->get_const_pts()[3];
+            }
+            symbol = 0;
+          }
+        }
+      }
+      else if(d_pcm_rate == 2){
+        for (size_t i = 0; i < length; i++) {
+          symbol = d_pcm_buffer[i];
+          if (symbol == 0) {
+            out[i] = d_constellation->get_const_pts ()[0];
+          }
+          else if (symbol == 1) {
+            out[i] = d_constellation->get_const_pts ()[1];
+          }
+          else if (symbol == 2) {
+            out[i] = d_constellation->get_const_pts ()[2];
+          }
+          else if (symbol == 3) {
+            out[i] = d_constellation->get_const_pts ()[3];
+          }
+        }
       }
       break;
     case OQPSK:
-      for(size_t i = 0; i< length; i++){
-        if(d_pcm_buffer[i/8] & (1 << (7 - i%8))){
-          d_oqpsk_symbol |= (1 << (1 - i%2));
+      if(d_pcm_rate == 1){
+        for(size_t i = 0; i< length*2; i++){
+          if(d_pcm_buffer[i/2]){
+            d_oqpsk_symbol |= (1 << (1 - i%2));
+          }
+          else{
+            d_oqpsk_symbol &= ~(1 << (1 - i%2));
+          }
+          out[i/2] = d_constellation->get_const_pts()[d_oqpsk_symbol];
         }
-        else{
-          d_oqpsk_symbol &= ~(1 << (1 - i%2));
+      }
+      else if(d_pcm_rate == 2){
+        for(size_t i = 0; i< length; i++){
+          if(d_pcm_buffer[i/2] & (1 << (1 - i%2))){
+            d_oqpsk_symbol |= (1 << (1 - i%2));
+          }
+          else{
+            d_oqpsk_symbol &= ~(1 << (1 - i%2));
+          }
+          out[i] = d_constellation->get_const_pts()[d_oqpsk_symbol];
         }
-        out[i] = d_constellation->get_const_pts()[d_oqpsk_symbol];
       }
       break;
   }

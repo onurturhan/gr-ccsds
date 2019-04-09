@@ -25,6 +25,7 @@
 #include "ccsds/pcm_decoder.h"
 #include "ccsds/ccsds_modulator.h"
 #include "ccsds/ccsds_constellation.h"
+#include "ccsds/ccsds_demodulator.h"
 %}
 
 
@@ -41,4 +42,5 @@
 GR_SWIG_BLOCK_MAGIC2(ccsds, ccsds_modulator);
 %include "ccsds/ccsds_constellation.h"
 
-%include "constellation.i"
+%include "constellation.i"%include "ccsds/ccsds_demodulator.h"
+GR_SWIG_BLOCK_MAGIC2(ccsds, ccsds_demodulator);

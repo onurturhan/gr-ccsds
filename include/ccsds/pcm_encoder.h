@@ -62,6 +62,7 @@ public:
 private:
   pcm_type_t d_type;
   uint8_t    d_prev_bit;
+  ssize_t pcm(uint8_t* out, uint8_t* in, size_t length);
 };
 
 } // namespace ccsds
