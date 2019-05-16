@@ -55,10 +55,10 @@ public:
   reset();
 
   ssize_t
-  decode_trunc (uint8_t *out, const uint8_t *in, size_t len);
+  decode_trunc (uint8_t *out, const int8_t *in, size_t len);
 
   ssize_t
-  decode (uint8_t *out, const uint8_t *in, size_t len);
+  decode (uint8_t *out, const int8_t *in, size_t len);
 
 private:
   const coding_rate_t   d_rate;
@@ -66,13 +66,21 @@ private:
   size_t                d_long_trunc_depth;
   uint8_t               *d_syms;
   uint8_t               *d_unpacked;
-  uint8_t               d_packed_b;
   bool                  d_first_block;
   void                  *d_vp;
   uint32_t              d_last_state;
 
   size_t
-  decode_block(uint8_t *out, const uint8_t *in, size_t len);
+  decode_block(uint8_t *out, const int8_t *in, size_t len);
+
+  size_t
+  decode_block_1_2(uint8_t *out, const int8_t *in, size_t len);
+
+  size_t
+  decode_block_2_3(uint8_t *out, const int8_t *in, size_t len);
+
+  size_t
+  decode_block_3_4(uint8_t *out, const int8_t *in, size_t len);
 };
 
 } // namespace ccsds

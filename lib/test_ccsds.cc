@@ -40,11 +40,11 @@ main (int argc, char **argv)
   CppUnit::TestResultCollector result;
   CppUnit::BriefTestProgressListener progressListener;
   CppUnit::TextTestRunner runner;
-  std::ofstream xmlfile(get_unittest_path("ccsds.xml").c_str());
-  CppUnit::XmlOutputter *xmlout = new CppUnit::XmlOutputter(&runner.result(), xmlfile);
+  //std::ofstream xmlfile(get_unittest_path("ccsds.xml").c_str());
+  //CppUnit::XmlOutputter *xmlout = new CppUnit::XmlOutputter(&runner.result(), xmlfile);
 
   runner.addTest(qa_ccsds::suite());
-  runner.setOutputter(xmlout);
+  //runner.setOutputter(xmlout);
   runner.eventManager().addListener(&result);
   runner.eventManager().addListener(&progressListener);
 

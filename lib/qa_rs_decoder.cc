@@ -61,7 +61,7 @@ qa_rs_decoder::test_simple_decode ()
    * This will actually test also proper compatibility witth the CCSDS version
    * of libfec
    */
-  ssize_t ret = rs8->decode (rx, tx, 255 * 8);
+  ssize_t ret = rs8->decode (rx, (int8_t *)tx, 255 * 8);
 
   CPPUNIT_ASSERT(ret >= 0);
   delete [] tx;
@@ -96,7 +96,7 @@ qa_rs_decoder::test_ecc8_decode ()
     tx[idx] |= err;
   }
 
-  ret = rs8->decode (rx, tx, 255 * 8);
+  ret = rs8->decode (rx, (int8_t *)tx, 255 * 8);
 
   CPPUNIT_ASSERT(ret >= 0);
   delete [] tx;
@@ -132,7 +132,7 @@ qa_rs_decoder::test_ecc16_decode ()
     tx[idx] |= err;
   }
 
-  ret = rs->decode (rx, tx, 255 * 8);
+  ret = rs->decode (rx, (int8_t *)tx, 255 * 8);
 
   CPPUNIT_ASSERT(ret >= 0);
   delete [] tx;
@@ -168,7 +168,7 @@ qa_rs_decoder::test_ecc8_vfill_decode ()
     tx[idx] |= err;
   }
 
-  ret = rs8->decode (rx, tx, (255 - 30) * 8);
+  ret = rs8->decode (rx, (int8_t *)tx, (255 - 30) * 8);
 
   CPPUNIT_ASSERT(ret >= 0);
   delete [] tx;
@@ -204,7 +204,7 @@ qa_rs_decoder::test_ecc16_vfill_decode ()
     tx[idx] |= err;
   }
 
-  ret = rs->decode (rx, tx, (255 - 30) * 8);
+  ret = rs->decode (rx, (int8_t *)tx, (255 - 30) * 8);
   CPPUNIT_ASSERT(ret >= 0);
 
   delete [] tx;
@@ -242,7 +242,7 @@ test(size_t ecc, size_t depth, size_t vfill = 0)
     tx[idx] |= err;
   }
 
-  ret = rs->decode (rx, tx, depth * (255 - vfill)* 8);
+  ret = rs->decode (rx, (int8_t *)tx, depth * (255 - vfill)* 8);
   CPPUNIT_ASSERT(ret >= 0);
   delete[] tx;
   delete[] rx;

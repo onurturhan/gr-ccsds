@@ -94,6 +94,7 @@ list(APPEND test_ccsds_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_decoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_pcm_encoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_turbo_encoder.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_rs_decoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_rs_encoder.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_conv_encoder.cc

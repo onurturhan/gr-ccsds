@@ -29,6 +29,7 @@
 #include "qa_encoder.h"
 #include "qa_decoder.h"
 #include "qa_conv_decoder.h"
+#include "qa_utils.h"
 #include "qa_rs_decoder.h"
 #include "qa_rs_encoder.h"
 #include "qa_conv_encoder.h"
@@ -45,6 +46,7 @@ qa_ccsds::suite()
   s->addTest(gr::ccsds::qa_encoder::suite());
   s->addTest(gr::ccsds::qa_decoder::suite());
   s->addTest(gr::ccsds::qa_conv_decoder::suite());
+  s->addTest(gr::ccsds::qa_utils::suite());
   s->addTest(gr::ccsds::qa_rs_decoder::suite());
   s->addTest(gr::ccsds::qa_rs_encoder::suite());
   s->addTest(gr::ccsds::qa_conv_encoder::suite());

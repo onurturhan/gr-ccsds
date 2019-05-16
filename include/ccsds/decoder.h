@@ -63,20 +63,20 @@ public:
    * is that this method resets any internal state of the decoder
    * to the initial states.
    *
-   * @param out the output buffer that will hold the decoded data
+   * @param out the output buffer that will hold the decoded data. Decoded
+   * data arte placed in the output buffer as unpacked bits, meaning that each
+   * byte holds only on bit of information at the LS bit.
    *
-   * @param in the input buffer
+   * @param in the input symbols. All of the available decoders support
+   * 8 bit soft decoding, with -128 indicating strong 0, whereas +127 strong one.
    *
-   * @param len the length of the input buffer in <b>bits</b>
+   * @param len the number of input symbols
    *
-   * @return the number of decoded <b>bits</b>. Due to the fact that
-   * some coding schemes may not produce an output that is a multiple of
-   * 8 bits, it is necessary to count in a per bit basis. If the result
-   * is not a multiple of 8 bits, the LS bits are padded with zeros.
-   * If an error occurred an appropriate negative error code is returned
+   * @return the number of decoded <b>bits</b>.
+   *  If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  decode(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  decode(uint8_t *out, const int8_t *in, size_t len) = 0;
 
   /**
    * Decodes a buffer. The difference with the decoder::decode_once() is that
@@ -86,18 +86,16 @@ public:
    *
    * @param out the output buffer that will hold the decoded data
    *
-   * @param in the input coded buffer
+   * @param in the input symbols. All of the available decoders support
+   * 8 bit soft decoding, with -128 indicating strong 0, whereas +127 strong one.
    *
-   * @param len the length of the input buffer in <b>bits</b>
+   * @param len the number of input symbols
    *
-   * @return the number of decoded <b>bits</b>. Due to the fact that
-   * some coding schemes may not produce an output that is a multiple of
-   * 8 bits, it is necessary to count in a per bit basis. If the result
-   * is not a multiple of 8 bits, the LS bits are padded with zeros.
+   * @return the number of decoded <b>bits</b>.
    * If an error occurred an appropriate negative error code is returned
    */
   virtual ssize_t
-  decode_trunc(uint8_t *out, const uint8_t *in, size_t len) = 0;
+  decode_trunc(uint8_t *out, const int8_t *in, size_t len) = 0;
 
   /**
    * This method should be called at the end of the decoding to

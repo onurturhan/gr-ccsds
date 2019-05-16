@@ -70,16 +70,14 @@ public:
   ssize_t
   finalize(uint8_t * out);
 
-  uint8_t *d_buffer;
 private:
   coding_rate_t                 d_cc_rate;
   itpp::Convolutional_Code      d_conv_code;
   itpp::ivec                    d_cc_generator;
-  size_t                        d_punctured_index;
+  size_t                        d_frame_idx;
 
-  void bytes_to_bvec (itpp::bvec &out, const uint8_t* buffer, size_t len);
-  void bvec_to_bytes (uint8_t *out, itpp::bvec in);
-  size_t puncture(uint8_t* out, size_t init_length);
+  size_t
+  inv_and_puncture(uint8_t* out, const itpp::bvec &in);
 };
 }
 }

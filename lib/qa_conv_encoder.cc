@@ -23,6 +23,7 @@
 #include <cppunit/TestAssert.h>
 #include "qa_conv_encoder.h"
 #include <ccsds/conv_encoder.h>
+#include <ccsds/utils.h>
 
 namespace gr
 {
@@ -32,19 +33,19 @@ namespace ccsds
 void
 qa_conv_encoder::t1 ()
 {
-  encoder::encoder_sptr conv = conv_encoder::make (conv_encoder::RATE_2_3,
+  encoder::encoder_sptr conv = conv_encoder::make (conv_encoder::RATE_1_2,
                                                    4096);
   uint8_t tx[20];
+  uint8_t tx_unpacked[20 * 8];
   for(int i=0; i< 20; i++){
-    tx[i] = 0xff;
+    tx[i] = 0x00;
   }
-  uint8_t rx[255];
+  uint8_t rx[255 * 8];
   memset (rx, 0xff, 255);
 
-
-  conv->encode(rx, tx, sizeof(tx) * 8);
-  volatile size_t len = conv->finalize(&rx[40]);
-  int i =0;
+  packed_to_unpacked(tx_unpacked, tx, 20);
+  conv->encode_trunc(rx, tx_unpacked, 20 * 8);
+  size_t len = conv->finalize(&rx[40 * 8]);
 }
 
 } /* namespace ccsds */

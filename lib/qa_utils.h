@@ -19,47 +19,38 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _QA_CONV_DECODER_H_
-#define _QA_CONV_DECODER_H_
+#ifndef LIB_QA_UTILS_H_
+#define LIB_QA_UTILS_H_
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
-#include <ccsds/conv_decoder.h>
+#include <ccsds/utils.h>
 
 namespace gr
 {
 namespace ccsds
 {
 
-class qa_conv_decoder : public CppUnit::TestCase
+class qa_utils : public CppUnit::TestCase
 {
 public:
-  CPPUNIT_TEST_SUITE(qa_conv_decoder);
-  CPPUNIT_TEST(test_simple_decode_1_2);
-  CPPUNIT_TEST(test_simple_decode_2_3);
-  //CPPUNIT_TEST(test_various_msg_len_1_2);
-  //CPPUNIT_TEST(test_various_msg_len_2_3);
+  CPPUNIT_TEST_SUITE(qa_utils);
+  CPPUNIT_TEST(test_packing);
+  CPPUNIT_TEST(test_soft_packing);
   CPPUNIT_TEST_SUITE_END();
 
 private:
   void
-  test_simple_decode_1_2 ();
+  test_packing();
 
   void
-  test_simple_decode_2_3 ();
-
-  void
-  test_various_msg_len_1_2 ();
-
-  void
-  test_various_msg_len_2_3 ();
-
-  void
-  test_decode(size_t msg_len, conv_decoder::coding_rate_t rate);
+  test_soft_packing();
 };
 
-} /* namespace ccsds */
-} /* namespace gr */
+}  // namespace ccsds
 
-#endif /* _QA_CONV_DECODER_H_ */
 
+}  // namespace gr
+
+
+#endif /* LIB_QA_UTILS_H_ */

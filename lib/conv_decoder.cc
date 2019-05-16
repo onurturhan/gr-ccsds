@@ -22,6 +22,7 @@
 
 #include <ccsds/conv_decoder.h>
 #include <ccsds/libfec/fec.h>
+#include <cstring>
 
 namespace gr
 {
@@ -41,14 +42,13 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
         d_trunc_depth(0),
         d_syms(nullptr),
         d_unpacked(nullptr),
-        d_packed_b(0x0),
         d_first_block(true),
         d_vp(0),
         d_last_state(0)
 {
   /*
    * The truncate depth greatly affects the performance and the computational
-   * demands of the Viterbo decoder.
+   * demands of the Viterbi decoder.
    *
    * Based on the findings of B.  Moision. “A  Truncation  Depth  Rule
    * of  Thumb  for  Convolutional  Codes.”    In
@@ -61,12 +61,21 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
     {
     case RATE_1_2:
       d_trunc_depth = 3 * (7 / (1 - 1.0/2.0));
+      while (d_trunc_depth % 2) {
+        d_trunc_depth++;
+      }
       break;
     case RATE_2_3:
       d_trunc_depth = 3 * (7 / (1 - 2.0/3.0));
+      while (d_trunc_depth % 3) {
+        d_trunc_depth++;
+      }
       break;
     case RATE_3_4:
       d_trunc_depth = 3 * (7 / (1 - 3.0/4.0));
+      while (d_trunc_depth % 4) {
+        d_trunc_depth++;
+      }
       break;
     case RATE_5_6:
       d_trunc_depth = 3 * (7 / (1 - 5.0 / 6.0));
@@ -80,24 +89,33 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
     }
 
   /*
-   * If the traceback depth is a multiple of 16, then the decoding process
-   * can be simplified a lot, making it also more efficient and faster
-   */
-  while(d_trunc_depth % 16) {
-    d_trunc_depth++;
-  }
-
-  /*
    * In some cases, when the remaining traceback depth is small, it is better
    * to let the trellis evolve further a bit, rather than doing traceback
    * and reset
    */
   d_long_trunc_depth = d_trunc_depth + d_trunc_depth / 4;
-  d_syms = new uint8_t[d_long_trunc_depth];
-  d_unpacked = new uint8_t[d_long_trunc_depth / 2];
+  while(d_long_trunc_depth % 2) {
+    d_long_trunc_depth++;
+  }
+  d_syms = new uint8_t[2 * d_long_trunc_depth];
+  d_unpacked = new uint8_t[2 * d_long_trunc_depth / 2];
 
-  int polys[2] = { V27POLYB, -V27POLYA };
-  d_vp = create_viterbi27 (d_trunc_depth / 2);
+  int polys[2];
+  /* Symbol invertion is performed only for coding rate 1/2 */
+  if(coding_rate == RATE_1_2) {
+    polys[0] = V27POLYB;
+    polys[1] = -V27POLYA;
+  }
+  else{
+    polys[0] = V27POLYB;
+    polys[1] = V27POLYA;
+  }
+  /*
+   * The maximum space required would be the
+   * traceback depth / 2  + the number of punctured bits. For simplicity
+   * we allocate twice the traceback depth to cover all possible cases
+   */
+  d_vp = create_viterbi27 (2 * d_long_trunc_depth);
   if(!d_vp) {
     throw std::runtime_error("conv_decoder: Could not create Viterbi instance");
   }
@@ -113,7 +131,7 @@ conv_decoder::~conv_decoder ()
 }
 
 ssize_t
-conv_decoder::decode_trunc (uint8_t* out, const uint8_t* in, size_t len)
+conv_decoder::decode_trunc (uint8_t* out, const int8_t* in, size_t len)
 {
   return -1;
 }
@@ -125,52 +143,67 @@ conv_decoder::reset ()
 }
 
 ssize_t
-conv_decoder::decode (uint8_t* out, const uint8_t* in, size_t len)
+conv_decoder::decode (uint8_t* out, const int8_t* in, size_t len)
 {
   size_t idx = 0;
   size_t remaining = len;
   size_t ret;
   /* Decode the blocks that fill entirely the whole traceback depth */
   for(size_t i = 0; i < len; i += d_trunc_depth) {
+    /*
+     * if the remaining bits are within the margin (traceback + traceback/4)
+     * perform the whole decoding. Eventually this will result to better
+     * performance
+     */
     if(remaining < d_long_trunc_depth) {
-      ret = decode_block(out + idx, in + i/8, remaining);
+      ret = decode_block(out + idx, in + i, remaining);
       idx += ret;
       return idx;
     }
-    ret = decode_block(out + idx, in + i/8, d_trunc_depth);
+    ret = decode_block(out + idx, in + i, d_trunc_depth);
     remaining -= d_trunc_depth;
     idx += ret;
   }
 
   /* Decode any remaining bits */
-  ret = decode_block(out + idx, in + (len / d_trunc_depth) * d_trunc_depth / 8,
+  ret = decode_block(out + idx, in + (len / d_trunc_depth) * d_trunc_depth,
                      len - (len / d_trunc_depth) * d_trunc_depth);
   idx += ret;
   return idx;
 }
 
-
+size_t
+conv_decoder::decode_block (uint8_t *out, const int8_t *in, size_t len)
+{
+  switch (d_rate)
+    {
+    case RATE_1_2:
+      return decode_block_1_2 (out, in, len);
+    case RATE_2_3:
+      return decode_block_2_3 (out, in, len);
+    case RATE_3_4:
+      return decode_block_1_2 (out, in, len);
+    case RATE_5_6:
+      return decode_block_1_2 (out, in, len);
+    case RATE_7_8:
+      return decode_block_1_2 (out, in, len);
+    default:
+      throw std::invalid_argument ("conv_decoder: Invalid coding rate");
+      return 0;
+    }
+  return 0;
+}
 
 size_t
-conv_decoder::decode_block (uint8_t* out, const uint8_t* in, size_t len)
+conv_decoder::decode_block_1_2 (uint8_t* out, const int8_t* in, size_t len)
 {
   if(len < 2) {
     return 0;
   }
   init_viterbi27 (d_vp, d_last_state);
-  for (uint32_t i = 0; i < len; i += 8) {
-    d_syms[i] = ((in[i / 8] >> 7) & 0x1) * 255;
-    d_syms[i + 1] = ((in[i / 8] >> 6) & 0x1) * 255;
-    d_syms[i + 2] = ((in[i / 8] >> 5) & 0x1) * 255;
-    d_syms[i + 3] = ((in[i / 8] >> 4) & 0x1) * 255;
-    d_syms[i + 4] = ((in[i / 8] >> 3) & 0x1) * 255;
-    d_syms[i + 5] = ((in[i / 8] >> 2) & 0x1) * 255;
-    d_syms[i + 6] = ((in[i / 8] >> 1) & 0x1) * 255;
-    d_syms[i + 7] = (in[i / 8] & 0x1) * 255;
-  }
-
-  for (uint32_t i = (len / 8) * 8; i < len; i++) {
-    d_syms[i] = ((in[i / 8] >> (7 - (i % 8))) & 0x1) * 255;
+  /* Convert to libfec compatible soft symbols */
+  for (uint32_t i = 0; i < len; i++) {
+    d_syms[i] = ((uint8_t)in[i] + 128);
   }
 
   update_viterbi27_blk(d_vp, d_syms, len / 2);
@@ -179,29 +212,82 @@ conv_decoder::decode_block (uint8_t* out, const uint8_t* in, size_t len)
                                                  len / 2);
   d_last_state = (uint32_t)state;
 
-  /* Repack bits, skipping the first 6 bits if this was the first block */
-  uint8_t *bits = d_unpacked;
+  /* Skip the first 6 bits if this was the first block */
   size_t nbits = len / 2;
-
   if(d_first_block) {
-    bits+=6;
-    nbits -= 6;
     d_first_block = false;
-    for(size_t i = 0; i < nbits; i++) {
-      d_packed_b = (d_packed_b << 1) | bits[i];
-      out[i >> 3] = d_packed_b;
+    memcpy(out, d_unpacked + 6, nbits - 6);
+    return nbits - 6;
+  }
+  memcpy(out, d_unpacked, nbits);
+  return nbits;
+}
+
+size_t
+conv_decoder::decode_block_2_3 (uint8_t* out, const int8_t* in, size_t len)
+{
+  if(len < 3) {
+    return 0;
+  }
+  size_t nsyms = 0;
+  /* Convert to libfec compatible soft symbols */
+  for (uint32_t i = 0; i < len; i++) {
+    d_syms[nsyms++] = ((uint8_t)in[i] + 128);
+    if(i % 3 == 1) {
+      d_syms[nsyms++] = 127;
     }
-    return nbits / 8;
   }
-  for (size_t i = 0; i < nbits; i++) {
-    d_packed_b = (d_packed_b << 1) | bits[i];
-    /*
-     * 2 bits are already decoded from the previous iteration, due to the fact
-     * that we have discarded the first 6 bits
-     */
-    out[(i + 2) >> 3] = d_packed_b;
+
+  update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
+
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
+                                                 nsyms / 2);
+  d_last_state = (uint32_t)state;
+
+  /* Repack bits, skipping the first 6 bits if this was the first block */
+  size_t nbits = nsyms / 2;
+  if(d_first_block) {
+    d_first_block = false;
+    memcpy(out, d_unpacked + 6, nbits - 6);
+    return nbits - 6;
   }
-  return nbits / 8;
+  memcpy(out, d_unpacked, nbits);
+  return nbits;
+}
+
+size_t
+conv_decoder::decode_block_3_4 (uint8_t* out, const int8_t* in, size_t len)
+{
+  if(len < 4) {
+    return 0;
+  }
+  size_t nsyms = 0;
+  init_viterbi27 (d_vp, d_last_state);
+
+  /* Convert to libfec compatible soft symbols */
+  for (uint32_t i = 0; i < len; i++) {
+    d_syms[nsyms++] = ((uint8_t)in[i] + 128);
+    if(i % 4 == 1 || i % 4 == 3) {
+      d_syms[nsyms++] = 127;
+    }
+  }
+
+  update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
+
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
+                                                 nsyms / 2);
+  d_last_state = (uint32_t)state;
+
+
+  /* Repack bits, skipping the first 6 bits if this was the first block */
+  size_t nbits = len / 2;
+  if(d_first_block) {
+    d_first_block = false;
+    memcpy(out, d_unpacked + 6, nbits - 6);
+    return nbits - 6;
+  }
+  memcpy(out, d_unpacked, nbits);
+  return nbits;
 }
 
 } /* namespace ccsds */
