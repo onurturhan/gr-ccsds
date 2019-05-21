@@ -37,8 +37,8 @@ public:
   CPPUNIT_TEST_SUITE(qa_conv_decoder);
   CPPUNIT_TEST(test_simple_decode_1_2);
   CPPUNIT_TEST(test_simple_decode_2_3);
-  //CPPUNIT_TEST(test_various_msg_len_1_2);
-  //CPPUNIT_TEST(test_various_msg_len_2_3);
+  CPPUNIT_TEST(test_various_msg_len_1_2);
+  CPPUNIT_TEST(test_various_msg_len_2_3);
   CPPUNIT_TEST_SUITE_END();
 
 private:
