@@ -106,15 +106,11 @@ conv_encoder::inv_and_puncture (uint8_t* out, const itpp::bvec &in)
         out[2 * i + 1] = !in[2*i + 1].value();
       }
       return in.length();
+    /* Output B inversion is not applicable for punctured codes */
     case RATE_2_3:
       for(int i = 0; i < in.length(); i++) {
         if (d_frame_idx % 4 != 2) {
-          if (d_frame_idx % 2) {
-            out[cnt++] = !in[i].value();
-          }
-          else {
-            out[cnt++] = in[i].value();
-          }
+          out[cnt++] = in[i].value();
         }
         d_frame_idx++;
       }
@@ -125,12 +121,7 @@ conv_encoder::inv_and_puncture (uint8_t* out, const itpp::bvec &in)
           d_frame_idx++;
           continue;
         }
-        if (d_frame_idx % 2) {
-          out[cnt++] = !in[i].value();
-        }
-        else {
-          out[cnt++] = in[i].value();
-        }
+        out[cnt++] = in[i].value();
         d_frame_idx++;
       }
       return cnt;

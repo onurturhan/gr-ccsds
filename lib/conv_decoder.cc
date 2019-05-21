@@ -23,6 +23,7 @@
 #include <ccsds/conv_decoder.h>
 #include <ccsds/libfec/fec.h>
 #include <cstring>
+#include <iostream>
 
 namespace gr
 {
@@ -101,6 +102,7 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
   d_unpacked = new uint8_t[2 * d_long_trunc_depth / 2];
 
   int polys[2];
+
   /* Symbol invertion is performed only for coding rate 1/2 */
   if(coding_rate == RATE_1_2) {
     polys[0] = V27POLYB;
@@ -140,6 +142,7 @@ void
 conv_decoder::reset ()
 {
   d_first_block = true;
+  d_last_state = 0;
 }
 
 ssize_t
@@ -148,6 +151,7 @@ conv_decoder::decode (uint8_t* out, const int8_t* in, size_t len)
   size_t idx = 0;
   size_t remaining = len;
   size_t ret;
+  reset ();
   /* Decode the blocks that fill entirely the whole traceback depth */
   for(size_t i = 0; i < len; i += d_trunc_depth) {
     /*
@@ -208,8 +212,7 @@ conv_decoder::decode_block_1_2 (uint8_t* out, const int8_t* in, size_t len)
 
   update_viterbi27_blk(d_vp, d_syms, len / 2);
 
-  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
-                                                 len / 2);
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, len / 2);
   d_last_state = (uint32_t)state;
 
   /* Skip the first 6 bits if this was the first block */
@@ -223,6 +226,7 @@ conv_decoder::decode_block_1_2 (uint8_t* out, const int8_t* in, size_t len)
   return nbits;
 }
 
+
 size_t
 conv_decoder::decode_block_2_3 (uint8_t* out, const int8_t* in, size_t len)
 {
@@ -230,6 +234,8 @@ conv_decoder::decode_block_2_3 (uint8_t* out, const int8_t* in, size_t len)
     return 0;
   }
   size_t nsyms = 0;
+  init_viterbi27 (d_vp, d_last_state);
+
   /* Convert to libfec compatible soft symbols */
   for (uint32_t i = 0; i < len; i++) {
     d_syms[nsyms++] = ((uint8_t)in[i] + 128);
@@ -237,11 +243,8 @@ conv_decoder::decode_block_2_3 (uint8_t* out, const int8_t* in, size_t len)
       d_syms[nsyms++] = 127;
     }
   }
-
   update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
-
-  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
-                                                 nsyms / 2);
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, nsyms / 2);
   d_last_state = (uint32_t)state;
 
   /* Repack bits, skipping the first 6 bits if this was the first block */
