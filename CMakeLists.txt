@@ -162,6 +162,16 @@ if(ENABLE_MEMCHECK)
   ccsds_enable_memcheck()
 endif(ENABLE_MEMCHECK)
 
+# Code coverage support
+option(ENABLE_COVERAGE 
+    "Enable a code coverage report generation" OFF
+)
+
+if(ENABLE_MEMCHECK)
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif(ENABLE_MEMCHECK)
+
 
 ########################################################################
 # Setup doxygen option

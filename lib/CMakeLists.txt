@@ -121,6 +121,22 @@ GR_ADD_TEST(test_ccsds test-ccsds)
 add_memtest(test_ccsds test-ccsds)
 
 ########################################################################
+# Code coverage testing
+########################################################################
+if(ENABLE_COVERAGE)
+    # No neeed to check the coverage for libfec
+    list(APPEND COVERAGE_GCOVR_EXCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/libfec
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include/ccsds/libfec
+        )
+    SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(
+         NAME coverage                  
+         EXECUTABLE test-ccsds            
+         DEPENDENCIES test-ccsds                
+    )
+endif()
+
+########################################################################
 # Print summary
 ########################################################################
 message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
