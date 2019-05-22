@@ -41,7 +41,6 @@ conv_encoder::conv_encoder (coding_rate_t cc_rate, size_t max_frame_len) :
   d_conv_code.set_generator_polynomials (d_cc_generator, 7); // Constraint length = 7
   d_conv_code.init_encoder ();
   d_conv_code.set_start_state (0);
-  d_frame_idx = 0;
 }
 
 conv_encoder::~conv_encoder ()
@@ -53,7 +52,6 @@ conv_encoder::encode (uint8_t *out, const uint8_t *in, size_t len)
 {
   itpp::bvec unencoded (0);
   itpp::bvec cc_encoded (0);
-  d_frame_idx = 0;
   for(size_t i = 0; i < len; i++) {
     unencoded = itpp::concat(unencoded, itpp::bin(in[i]));
   }
@@ -92,7 +90,6 @@ void
 conv_encoder::reset ()
 {
   d_conv_code.set_start_state (0);
-  d_frame_idx = 0;
 }
 
 size_t
@@ -109,20 +106,46 @@ conv_encoder::inv_and_puncture (uint8_t* out, const itpp::bvec &in)
     /* Output B inversion is not applicable for punctured codes */
     case RATE_2_3:
       for(int i = 0; i < in.length(); i++) {
-        if (d_frame_idx % 4 != 2) {
+        if (i % 4 != 2) {
           out[cnt++] = in[i].value();
         }
-        d_frame_idx++;
       }
       return cnt;
     case RATE_3_4:
       for (int i = 0; i < in.length (); i++) {
-        if(d_frame_idx % 4 == 1 || d_frame_idx % 4 == 3) {
-          d_frame_idx++;
+        if(i % 6 == 2 || i % 6 == 5) {
           continue;
         }
         out[cnt++] = in[i].value();
-        d_frame_idx++;
+      }
+      return cnt;
+    case RATE_5_6:
+      for (int i = 0; i < in.length (); i++) {
+        switch(i % 10) {
+          case 2:
+          case 5:
+          case 6:
+          case 9:
+            break;
+          default:
+            out[cnt++] = in[i].value();
+        }
+      }
+      return cnt;
+    case RATE_7_8:
+      for (int i = 0; i < in.length (); i++) {
+        switch (i % 14)
+          {
+          case 2:
+          case 4:
+          case 6:
+          case 9:
+          case 10:
+          case 13:
+            break;
+          default:
+            out[cnt++] = in[i].value ();
+          }
       }
       return cnt;
     default:

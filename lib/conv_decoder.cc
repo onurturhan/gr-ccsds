@@ -80,9 +80,15 @@ conv_decoder::conv_decoder (coding_rate_t coding_rate, size_t max_frame_len) :
       break;
     case RATE_5_6:
       d_trunc_depth = 3 * (7 / (1 - 5.0 / 6.0));
+      while (d_trunc_depth % 6) {
+        d_trunc_depth++;
+      }
       break;
     case RATE_7_8:
       d_trunc_depth = 3 * (7 / (1 - 7.0 / 8.0));
+      while (d_trunc_depth % 8) {
+        d_trunc_depth++;
+      }
       break;
     default:
       d_trunc_depth = 0;
@@ -186,11 +192,11 @@ conv_decoder::decode_block (uint8_t *out, const int8_t *in, size_t len)
     case RATE_2_3:
       return decode_block_2_3 (out, in, len);
     case RATE_3_4:
-      return decode_block_1_2 (out, in, len);
+      return decode_block_3_4 (out, in, len);
     case RATE_5_6:
-      return decode_block_1_2 (out, in, len);
+      return decode_block_5_6 (out, in, len);
     case RATE_7_8:
-      return decode_block_1_2 (out, in, len);
+      return decode_block_7_8 (out, in, len);
     default:
       throw std::invalid_argument ("conv_decoder: Invalid coding rate");
       return 0;
@@ -211,7 +217,6 @@ conv_decoder::decode_block_1_2 (uint8_t* out, const int8_t* in, size_t len)
   }
 
   update_viterbi27_blk(d_vp, d_syms, len / 2);
-
   int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, len / 2);
   d_last_state = (uint32_t)state;
 
@@ -243,6 +248,7 @@ conv_decoder::decode_block_2_3 (uint8_t* out, const int8_t* in, size_t len)
       d_syms[nsyms++] = 127;
     }
   }
+
   update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
   int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, nsyms / 2);
   d_last_state = (uint32_t)state;
@@ -276,14 +282,95 @@ conv_decoder::decode_block_3_4 (uint8_t* out, const int8_t* in, size_t len)
   }
 
   update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
-
-  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked,
-                                                 nsyms / 2);
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, nsyms / 2);
   d_last_state = (uint32_t)state;
 
+  /* Repack bits, skipping the first 6 bits if this was the first block */
+  size_t nbits = nsyms / 2;
+  if(d_first_block) {
+    d_first_block = false;
+    memcpy(out, d_unpacked + 6, nbits - 6);
+    return nbits - 6;
+  }
+  memcpy(out, d_unpacked, nbits);
+  return nbits;
+}
+
+size_t
+conv_decoder::decode_block_5_6 (uint8_t* out, const int8_t* in, size_t len)
+{
+  if(len < 6) {
+    return 0;
+  }
+  size_t nsyms = 0;
+  init_viterbi27 (d_vp, d_last_state);
+
+  /* Convert to libfec compatible soft symbols */
+  for (uint32_t i = 0; i < len; i++) {
+    d_syms[nsyms++] = ((uint8_t)in[i] + 128);
+    switch(i % 6) {
+      case 1:
+        d_syms[nsyms++] = 127;
+        break;
+      case 3:
+        d_syms[nsyms++] = 127;
+        d_syms[nsyms++] = 127;
+        break;
+      case 5:
+        d_syms[nsyms++] = 127;
+        break;
+    }
+  }
+
+  update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, nsyms / 2);
+  d_last_state = (uint32_t)state;
 
   /* Repack bits, skipping the first 6 bits if this was the first block */
-  size_t nbits = len / 2;
+  size_t nbits = nsyms / 2;
+  if(d_first_block) {
+    d_first_block = false;
+    memcpy(out, d_unpacked + 6, nbits - 6);
+    return nbits - 6;
+  }
+  memcpy(out, d_unpacked, nbits);
+  return nbits;
+}
+
+size_t
+conv_decoder::decode_block_7_8 (uint8_t* out, const int8_t* in, size_t len)
+{
+  if(len < 8) {
+    return 0;
+  }
+  size_t nsyms = 0;
+  init_viterbi27 (d_vp, d_last_state);
+
+  /* Convert to libfec compatible soft symbols */
+  for (uint32_t i = 0; i < len; i++) {
+    d_syms[nsyms++] = ((uint8_t)in[i] + 128);
+    switch(i % 8) {
+      case 1:
+      case 2:
+      case 3:
+         d_syms[nsyms++] = 127;
+         break;
+      case 5:
+         d_syms[nsyms++] = 127;
+          d_syms[nsyms++] = 127;
+          break;
+      case 7:
+        d_syms[nsyms++] = 127;
+        break;
+    }
+  }
+
+  update_viterbi27_blk(d_vp, d_syms, nsyms / 2);
+  int state = chainback_viterbi27_unpacked_trunc(d_vp, d_unpacked, nsyms / 2);
+  d_last_state = (uint32_t)state;
+
+  /* Repack bits, skipping the first 6 bits if this was the first block */
+  size_t nbits = nsyms / 2;
   if(d_first_block) {
     d_first_block = false;
     memcpy(out, d_unpacked + 6, nbits - 6);

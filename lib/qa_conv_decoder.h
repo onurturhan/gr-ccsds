@@ -37,8 +37,14 @@ public:
   CPPUNIT_TEST_SUITE(qa_conv_decoder);
   CPPUNIT_TEST(test_simple_decode_1_2);
   CPPUNIT_TEST(test_simple_decode_2_3);
+  CPPUNIT_TEST(test_simple_decode_3_4);
+  CPPUNIT_TEST(test_simple_decode_5_6);
+  CPPUNIT_TEST(test_simple_decode_7_8);
   CPPUNIT_TEST(test_various_msg_len_1_2);
   CPPUNIT_TEST(test_various_msg_len_2_3);
+  CPPUNIT_TEST(test_various_msg_len_3_4);
+  CPPUNIT_TEST(test_various_msg_len_5_6);
+  CPPUNIT_TEST(test_various_msg_len_7_8);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -49,10 +55,28 @@ private:
   test_simple_decode_2_3 ();
 
   void
+  test_simple_decode_3_4 ();
+
+  void
+  test_simple_decode_5_6 ();
+
+  void
+  test_simple_decode_7_8 ();
+
+  void
   test_various_msg_len_1_2 ();
 
   void
   test_various_msg_len_2_3 ();
+
+  void
+  test_various_msg_len_3_4 ();
+
+  void
+  test_various_msg_len_5_6 ();
+
+  void
+  test_various_msg_len_7_8 ();
 
   void
   test_decode(size_t msg_len, conv_decoder::coding_rate_t rate);

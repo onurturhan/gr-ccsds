@@ -71,16 +71,22 @@ private:
   uint32_t              d_last_state;
 
   size_t
-  decode_block(uint8_t *out, const int8_t *in, size_t len);
+  decode_block (uint8_t *out, const int8_t *in, size_t len);
 
   size_t
-  decode_block_1_2(uint8_t *out, const int8_t *in, size_t len);
+  decode_block_1_2 (uint8_t *out, const int8_t *in, size_t len);
 
   size_t
-  decode_block_2_3(uint8_t *out, const int8_t *in, size_t len);
+  decode_block_2_3 (uint8_t *out, const int8_t *in, size_t len);
 
   size_t
-  decode_block_3_4(uint8_t *out, const int8_t *in, size_t len);
+  decode_block_3_4 (uint8_t *out, const int8_t *in, size_t len);
+
+  size_t
+  decode_block_5_6 (uint8_t *out, const int8_t *in, size_t len);
+
+  size_t
+  decode_block_7_8 (uint8_t *out, const int8_t *in, size_t len);
 };
 
 } // namespace ccsds

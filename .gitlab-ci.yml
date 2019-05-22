@@ -34,7 +34,7 @@ ccsds_test:debian:
         - make CTEST_OUTPUT_ON_FAILURE=1 test
 
 ccsds_build:opensuse:
-    image: opensuse/tumbleweed
+    image: opensuse/leap
     before_script:
         - zypper ref && zypper install -y -l gcc-c++ cppunit-devel cmake pkg-config libconfig++-devel valgrind doxygen patterns-devel-C-C++-devel_C_C++ gnuradio-devel git swig itpp-devel boost-devel libboost_atomic-devel libboost_filesystem-devel libboost_system-devel 
     stage: build
@@ -52,7 +52,7 @@ ccsds_build:opensuse:
             - build/
 
 ccsds_test:opensuse:
-    image: opensuse/tumbleweed
+    image: opensuse/leap
     before_script:
         - zypper ref && zypper install -y -l gcc-c++ cppunit-devel cmake pkg-config libconfig++-devel valgrind doxygen patterns-devel-C-C++-devel_C_C++ gnuradio-devel git swig itpp-devel
     stage: test

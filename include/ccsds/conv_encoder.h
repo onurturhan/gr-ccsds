@@ -74,7 +74,6 @@ private:
   coding_rate_t                 d_cc_rate;
   itpp::Convolutional_Code      d_conv_code;
   itpp::ivec                    d_cc_generator;
-  size_t                        d_frame_idx;
 
   size_t
   inv_and_puncture(uint8_t* out, const itpp::bvec &in);
