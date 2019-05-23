@@ -39,6 +39,7 @@
 #include <fstream>
 #include <iostream>
 
+#define DATA_SIZE 1024
 namespace gr
 {
 namespace ccsds
@@ -47,7 +48,7 @@ namespace ccsds
 void
 qa_ccsds_demodulator::bpsk_uncoded ()
 {
-  size_t data_length = 2048*2;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -62,30 +63,31 @@ qa_ccsds_demodulator::bpsk_uncoded ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(4);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -96,15 +98,20 @@ qa_ccsds_demodulator::bpsk_uncoded ()
     }
   }
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
+
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 }
 
 void
 qa_ccsds_demodulator::bpsk_nrzs ()
 {
-  size_t data_length = 2048*2;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -119,30 +126,31 @@ qa_ccsds_demodulator::bpsk_nrzs ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(4);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -153,16 +161,20 @@ qa_ccsds_demodulator::bpsk_nrzs ()
     }
   }
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
+
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
-
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 }
 
 void
 qa_ccsds_demodulator::bpsk_nrzm ()
 {
-  size_t data_length = 2048*2;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -177,30 +189,31 @@ qa_ccsds_demodulator::bpsk_nrzm ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(4);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -210,17 +223,20 @@ qa_ccsds_demodulator::bpsk_nrzm ()
       c[i/8] = (c[i/8] << 1 );
     }
   }
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
-
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 }
 
 void
 qa_ccsds_demodulator::qpsk_uncoded ()
 {
-  size_t data_length = 2048*2;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -235,30 +251,31 @@ qa_ccsds_demodulator::qpsk_uncoded ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(4);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -269,16 +286,20 @@ qa_ccsds_demodulator::qpsk_uncoded ()
     }
   }
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
+
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
-
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 }
 
 void
 qa_ccsds_demodulator::qpsk_nrzm ()
 {
-  size_t data_length = 2048*3;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -293,30 +314,31 @@ qa_ccsds_demodulator::qpsk_nrzm ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(8);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -327,16 +349,20 @@ qa_ccsds_demodulator::qpsk_nrzm ()
     }
   }
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
+
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
-
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 }
 
 void
 qa_ccsds_demodulator::qpsk_nrzs ()
 {
-  size_t data_length = 2048*2;
+  size_t data_length = DATA_SIZE;
   std::random_device rd;
   std::mt19937 mt(rd());
   std::uniform_int_distribution<uint8_t> uni(0, 255);
@@ -351,30 +377,31 @@ qa_ccsds_demodulator::qpsk_nrzs ()
 
   tb->start();
 
-  uint8_t tx[data_length];
-  for(int i=0 ; i< sizeof(tx); i++){
+  uint8_t *tx = new uint8_t[data_length];
+  for(int i=0 ; i< data_length; i++){
     tx[i] = uni(mt);
   }
-  uint8_t tx_b[sizeof(tx)*8];
-  for(size_t i = 0; i < sizeof(tx)*8; i++) {
+  uint8_t *tx_b = new uint8_t[data_length*8];
+  for(size_t i = 0; i < data_length*8; i++) {
     tx_b[i] = (tx[i/8] >> (7 - i%8)) & 0x01;
   }
 
 //  memcpy(tx, str.data(), str.length());
   pmt::pmt_t port(pmt::intern("PDU_in"));
   for (int i = 0; i < 1; i++){
-    send(mod, port, pmt::make_blob(tx_b, sizeof(tx)*8));
+    send(mod, port, pmt::make_blob(tx_b, data_length*8));
   }
 
   // Give the messages a chance to be processed
-  sleep(1);
+  sleep(4);
 
   tb->stop ();
   tb->wait ();
 
   std::vector<uint8_t> dat = dst->data();
 
-  uint8_t c[dat.size()/8];
+  uint8_t *c = new uint8_t[dat.size()/8];
+  memset(c, 0, dat.size()/8);
   for(int i=0 ; i< dat.size(); i++){
     int8_t o = dat[i];
     if(o >= 0){
@@ -384,10 +411,14 @@ qa_ccsds_demodulator::qpsk_nrzs ()
       c[i/8] = (c[i/8] << 1 );
     }
   }
+  CPPUNIT_ASSERT(data_length == dat.size()/8);
 
-  for(uint32_t i = 0; i < sizeof(tx); i++) {
+  for(uint32_t i = 0; i < data_length; i++) {
     CPPUNIT_ASSERT(tx[i] == c[i]);
   }
+  delete[] tx;
+  delete[] tx_b;
+  delete[] c;
 
 }
 

@@ -52,7 +52,6 @@ qa_ccsds::suite()
   s->addTest(gr::ccsds::qa_pcm_encoder::suite());
   s->addTest(gr::ccsds::qa_pcm_decoder::suite());
   s->addTest(gr::ccsds::qa_ccsds_demodulator::suite());
-  s->addTest(gr::ccsds::qa_ccsds_modulator::suite());
 
   return s;
 }
