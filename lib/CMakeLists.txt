@@ -124,10 +124,10 @@ add_memtest(test_ccsds test-ccsds)
 # Code coverage testing
 ########################################################################
 if(ENABLE_COVERAGE)
-    # No neeed to check the coverage for libfec
-    list(APPEND COVERAGE_GCOVR_EXCLUDES
-        ${CMAKE_CURRENT_SOURCE_DIR}/libfec
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include/ccsds/libfec
+    # No neeed to check the coverage for libfec or swig
+    list(APPEND COVERAGE_GCOVR_EXCLUDE_DIRS
+            swig
+            lib/libfec
         )
     SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(
          NAME coverage                  

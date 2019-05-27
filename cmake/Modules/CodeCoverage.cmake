@@ -214,10 +214,16 @@ function(SETUP_TARGET_FOR_COVERAGE_GCOVR_XML)
 
     # Combine excludes to several -e arguments
     set(GCOVR_EXCLUDES "")
+    set(GCOVR_EXCLUDES_DIRS "")
     foreach(EXCLUDE ${COVERAGE_GCOVR_EXCLUDES})
         string(REPLACE "*" "\\*" EXCLUDE_REPLACED ${EXCLUDE})
         list(APPEND GCOVR_EXCLUDES "-e")
         list(APPEND GCOVR_EXCLUDES "${EXCLUDE_REPLACED}")
+    endforeach()
+    foreach(EXCLUDE ${COVERAGE_GCOVR_EXCLUDE_DIRS})
+        string(REPLACE "*" "\\*" EXCLUDE_REPLACED ${EXCLUDE})
+        list(APPEND GCOVR_EXCLUDE_DIRS "--exclude-directories")
+        list(APPEND GCOVR_EXCLUDE_DIRS "${EXCLUDE_REPLACED}")
     endforeach()
 
     add_custom_target(${Coverage_NAME}
@@ -226,7 +232,7 @@ function(SETUP_TARGET_FOR_COVERAGE_GCOVR_XML)
 
         # Running gcovr
         COMMAND ${GCOVR_PATH} --xml
-            -r ${PROJECT_SOURCE_DIR} ${GCOVR_EXCLUDES}
+            -r ${PROJECT_SOURCE_DIR} ${GCOVR_EXCLUDES} ${GCOVR_EXCLUDE_DIRS}
             --object-directory=${PROJECT_BINARY_DIR}
             -o ${Coverage_NAME}.xml
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -265,10 +271,16 @@ function(SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML)
 
     # Combine excludes to several -e arguments
     set(GCOVR_EXCLUDES "")
+    set(GCOVR_EXCLUDES_DIRS "")
     foreach(EXCLUDE ${COVERAGE_GCOVR_EXCLUDES})
         string(REPLACE "*" "\\*" EXCLUDE_REPLACED ${EXCLUDE})
         list(APPEND GCOVR_EXCLUDES "-e")
         list(APPEND GCOVR_EXCLUDES "${EXCLUDE_REPLACED}")
+    endforeach()
+    foreach(EXCLUDE ${COVERAGE_GCOVR_EXCLUDE_DIRS})
+        string(REPLACE "*" "\\*" EXCLUDE_REPLACED ${EXCLUDE})
+        list(APPEND GCOVR_EXCLUDE_DIRS "--exclude-directories")
+        list(APPEND GCOVR_EXCLUDE_DIRS "${EXCLUDE_REPLACED}")
     endforeach()
 
     add_custom_target(${Coverage_NAME}
@@ -281,9 +293,18 @@ function(SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML)
         # Running gcovr
         
         COMMAND ${PYTHON3_INTERP} ${GCOVR_PATH} --html --html-details
-            -r ${PROJECT_SOURCE_DIR} ${GCOVR_EXCLUDES}
+            -r ${PROJECT_SOURCE_DIR} ${GCOVR_EXCLUDES} ${GCOVR_EXCLUDE_DIRS}
             --object-directory=${PROJECT_BINARY_DIR}
             -o ${Coverage_NAME}/index.html
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        DEPENDS ${Coverage_DEPENDENCIES}
+        COMMENT "Running gcovr to produce HTML code coverage report."
+        
+        # Run it again to generate the report in text based form for the
+        # CI to parse it
+        COMMAND ${PYTHON3_INTERP} ${GCOVR_PATH}
+            -r ${PROJECT_SOURCE_DIR} ${GCOVR_EXCLUDES} ${GCOVR_EXCLUDE_DIRS}
+            --object-directory=${PROJECT_BINARY_DIR}
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         DEPENDS ${Coverage_DEPENDENCIES}
         COMMENT "Running gcovr to produce HTML code coverage report."

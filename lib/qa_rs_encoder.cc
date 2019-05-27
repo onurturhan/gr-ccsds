@@ -19,7 +19,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <gnuradio/attributes.h>
 #include <cppunit/TestAssert.h>
 #include "qa_rs_encoder.h"
@@ -27,31 +26,38 @@
 #include <random>
 
 #include <ccsds/libfec/fec.h>
+#include <ccsds/utils.h>
 
-namespace gr {
-  namespace ccsds {
+namespace gr
+{
+namespace ccsds
+{
 
-    void
-	qa_rs_encoder::test_simple_encoder()
-    {
-    	  std::random_device rd;
-    	  std::mt19937 mt(rd());
-    	  std::uniform_int_distribution<uint8_t> uni(0, 255);
-    	  encoder::encoder_sptr rs8 = rs_encoder::make(rs_encoder::ECC_16,
-    	                                               rs_encoder::INTERLEAVER_DEPTH_1);
+void
+qa_rs_encoder::test_simple_encoder ()
+{
+  std::random_device rd;
+  std::mt19937 mt (rd ());
+  std::uniform_int_distribution<uint8_t> uni (0, 255);
+  encoder::encoder_sptr rs8 = rs_encoder::make (
+      rs_encoder::ECC_16, rs_encoder::INTERLEAVER_DEPTH_1);
 
-    	  uint8_t *tx = new uint8_t[255];
-    	  uint8_t *rx = new uint8_t[255];
+  uint8_t *tx = new uint8_t[255];
+  uint8_t *tx_unpacked = new uint8_t[255 * 8];
+  uint8_t *rx_unpacked = new uint8_t[255 * 8];
 
-    	  for(size_t i = 0; i < 255 -32; i++) {
-    	    tx[i] = uni(mt);
-    	  }
-    	  ssize_t ret = rs8->encode(rx,tx,255 - 32);
+  for (size_t i = 0; i < 255 - 32; i++) {
+    tx[i] = uni (mt);
+  }
+  packed_to_unpacked(tx_unpacked, tx, 255 - 32);
 
-    	  delete [] tx;
-    	  delete [] rx;
-    }
+  ssize_t ret = rs8->encode (rx_unpacked, tx_unpacked, 255 - 32);
 
-  } /* namespace ccsds */
+  delete[] tx;
+  delete[] tx_unpacked;
+  delete[] rx_unpacked;
+}
+
+} /* namespace ccsds */
 } /* namespace gr */
 

@@ -73,11 +73,11 @@ private:
 
   void *                        d_rs_code;
   uint8_t                       d_rs_ecc;
-  size_t                        d_data_per_cdblk;
   size_t                        d_rs_parity;
   interleaver_t                 d_inter_depth;
   size_t                        d_max_frame_len;
   std::vector<uint8_t *>        d_buffers;
+  uint8_t                       *d_packed_buffer;
 
   uint8_t init_rs_code(int fill);
 };

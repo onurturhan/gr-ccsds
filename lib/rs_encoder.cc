@@ -21,6 +21,7 @@
 
 #include <ccsds/rs_encoder.h>
 #include <ccsds/libfec/fec.h>
+#include <ccsds/utils.h>
 
 namespace gr
 {
@@ -35,7 +36,12 @@ rs_encoder::make (ecc_t ecc, interleaver_t inter_depth)
 
 rs_encoder::rs_encoder (ecc_t ecc, interleaver_t inter_depth) :
         encoder (255 * 8 * inter_depth),
-        d_buffers (inter_depth)
+        d_rs_code(nullptr),
+        d_rs_ecc(0),
+        d_rs_parity(0),
+        d_inter_depth(INTERLEAVER_DEPTH_1),
+        d_buffers (inter_depth),
+        d_packed_buffer(nullptr)
 {
   switch (ecc)
     {
@@ -50,7 +56,6 @@ rs_encoder::rs_encoder (ecc_t ecc, interleaver_t inter_depth) :
           "rs_encoder: Invalid error correction capability");
     }
   d_rs_parity = 2 * d_rs_ecc;
-  d_data_per_cdblk = 255 - d_rs_parity;
 
   switch (inter_depth)
     {
@@ -69,8 +74,10 @@ rs_encoder::rs_encoder (ecc_t ecc, interleaver_t inter_depth) :
   for(size_t i = 0; i < inter_depth; i++) {
     d_buffers[i] = new uint8_t[255];
   }
+  d_packed_buffer = new uint8_t[255 * inter_depth];
 
-  d_max_frame_len = 255 * d_inter_depth; // As stated in CCSDS, max frame length will be 255* inteleaving_depth
+  /* As stated in CCSDS, max frame length will be 255* inteleaving_depth */
+  d_max_frame_len = 255 * d_inter_depth;
   d_rs_code = NULL;
   init_rs_code (0);
 }
@@ -80,6 +87,7 @@ rs_encoder::~rs_encoder ()
   for (uint8_t *i : d_buffers) {
     delete[] i;
   }
+  delete [] d_packed_buffer;
   free_rs_char (d_rs_code);
 }
 
@@ -119,10 +127,13 @@ rs_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
   /* Re-init the RS encoder */
   init_rs_code (vfill);
 
+  /* Pack the unpacked input bits */
+  unpacked_to_packed(d_packed_buffer, in, len);
+
   size_t s = 0;
   reset();
   for(size_t i = 0; i < byte_len; i++) {
-    d_buffers[s][vfill + i / d_inter_depth] = in[i];
+    d_buffers[s][vfill + i / d_inter_depth] = d_packed_buffer[i];
     s = (s + 1) % d_inter_depth;
   }
 
@@ -134,10 +145,10 @@ rs_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
   /* Repack messages from each encoder */
   s = 0;
   for(size_t i = 0; i < byte_len + d_inter_depth * d_rs_parity; i++) {
-    out[cnt++] = d_buffers[s][vfill + i / d_inter_depth];
+    d_packed_buffer[cnt++] = d_buffers[s][vfill + i / d_inter_depth];
     s = (s + 1) % d_inter_depth;
   }
-
+  packed_to_unpacked(out, d_packed_buffer, cnt);
   return cnt * 8;
 }
 

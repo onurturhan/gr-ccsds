@@ -73,6 +73,7 @@ public:
 private:
   size_t                        d_parity_bytes;
   size_t                        d_inter_depth;
+  uint8_t                       *d_packed_buffer;
   std::vector<uint8_t *>        d_buffers;
 
   void

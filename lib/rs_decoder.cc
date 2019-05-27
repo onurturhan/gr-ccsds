@@ -26,7 +26,7 @@
 #include <gnuradio/io_signature.h>
 #include <ccsds/rs_decoder.h>
 #include <cstring>
-#include <iostream>
+#include <ccsds/utils.h>
 
 #include <ccsds/libfec/fec.h>
 
@@ -43,6 +43,9 @@ rs_decoder::make (rs_decoder::ecc_t ecc, rs_decoder::interleaver_t inter)
 
 rs_decoder::rs_decoder (ecc_t ecc, interleaver_t inter) :
     decoder(255 * inter * 8),
+    d_parity_bytes(0),
+    d_inter_depth(0),
+    d_packed_buffer(nullptr),
     d_buffers(inter)
 {
   switch(ecc) {
@@ -71,6 +74,7 @@ rs_decoder::rs_decoder (ecc_t ecc, interleaver_t inter) :
   for(size_t i = 0; i < d_inter_depth; i++) {
     d_buffers[i] = new uint8_t[255];
   }
+  d_packed_buffer = new uint8_t[d_inter_depth * 255];
 }
 
 rs_decoder::~rs_decoder ()
@@ -78,6 +82,7 @@ rs_decoder::~rs_decoder ()
   for(uint8_t *i : d_buffers) {
     delete [] i;
   }
+  delete [] d_packed_buffer;
 }
 
 ssize_t
@@ -111,6 +116,9 @@ rs_decoder::decode_trunc (uint8_t* out, const int8_t* in, size_t len)
   }
   reset();
 
+  /* Convert the unpacked soft symbols to packed hard */
+  unpacked_to_packed_soft(d_packed_buffer, in, len);
+
   /* Perform deinterleave and virtual fill */
   size_t ivfill = (vfill / d_inter_depth) / 8;
   size_t s = 0;
@@ -122,14 +130,13 @@ rs_decoder::decode_trunc (uint8_t* out, const int8_t* in, size_t len)
   }
 
   for(size_t i = 0; i < len / 8; i++) {
-    d_buffers[s][ivfill + i / d_inter_depth] = in[i];
+    d_buffers[s][ivfill + i / d_inter_depth] = d_packed_buffer[i];
     s = (s + 1) % d_inter_depth;
   }
   /* Decode each codeword */
   for (uint8_t *i : d_buffers) {
     ret = decode_rs_char(rs, i + ivfill, NULL, 0);
     if(ret < 0) {
-      std::cout << "failed decoding " << ret << std::endl;
       free_rs_char(rs);
       return -1;
     }
@@ -137,9 +144,10 @@ rs_decoder::decode_trunc (uint8_t* out, const int8_t* in, size_t len)
   /* Compact the messages from each decoder */
   s = 0;
   for(size_t i = 0; i < len / 8 - d_parity_bytes * d_inter_depth; i++) {
-    out[cnt++] = d_buffers[s][ivfill + i / d_inter_depth];
+    d_packed_buffer[cnt++] = d_buffers[s][ivfill + i / d_inter_depth];
     s = (s + 1) % d_inter_depth;
   }
+  packed_to_unpacked(out, d_packed_buffer, cnt);
   free_rs_char(rs);
   return cnt * 8;
 }
