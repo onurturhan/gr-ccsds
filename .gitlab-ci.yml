@@ -66,6 +66,7 @@ ccsds_test:opensuse:
         - export PYTHONIOENCODING=utf-8
         - cd build
         - make CTEST_OUTPUT_ON_FAILURE=1 test
+        - cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=1 ..
         - make coverage
     artifacts:
         paths:

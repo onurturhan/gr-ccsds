@@ -93,7 +93,9 @@ private:
   /**
    * Due to an incompatibility of the itpp library for the turbo encoding and
    * the CCSDS recommendation, a permutation of the tail bits introduced
-   * by itpp needs to take place.
+   * by itpp needs to take place. itpp inserts the tailbits of the first
+   * encoder and then the ones of the second decoder instead of interleaving
+   * them as ccsds requires
    */
   void handle_tail_perm(itpp::bvec &out, itpp::bvec &in);
 

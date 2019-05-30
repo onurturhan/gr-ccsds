@@ -25,6 +25,7 @@
 
 #include <gnuradio/io_signature.h>
 #include <ccsds/turbo_encoder.h>
+#include <ccsds/utils.h>
 
 namespace gr
 {
@@ -55,7 +56,8 @@ turbo_encoder::make (coding_rate_t turbo_rate, block_len_t block_len,
 turbo_encoder::turbo_encoder (coding_rate_t turbo_rate, block_len_t block_len,
                               size_t max_frame_len) :
         d_turbo_rate (turbo_rate),
-        d_block_len (block_len)
+        d_block_len (block_len),
+        d_buffer(nullptr)
 {
   d_constr_len = 5;
   d_vec_len = 0;
@@ -107,13 +109,11 @@ turbo_encoder::turbo_encoder (coding_rate_t turbo_rate, block_len_t block_len,
   d_tail_size = 4 * d_rate;
   d_turbo_codec.set_parameters (gen_polys1, gen_polys2, d_constr_len,
                                 d_permutations);
-  d_buffer = new uint8_t[max_frame_len];
 
 }
 
 turbo_encoder::~turbo_encoder ()
 {
-  delete[] d_buffer;
 }
 
 void
@@ -174,54 +174,44 @@ turbo_encoder::encode_trunc (uint8_t *out, const uint8_t *in, size_t len)
   if (len % d_vec_len != 0) {
     return -1;
   }
+
   itpp::bvec turbo_uncoded (0);
   itpp::bvec turbo_coded (0);
   itpp::bvec turbo_coded_temp (0);
-  bytes_to_bvec (turbo_uncoded, in, len);
+  /*Convert to bvec*/
+  for(size_t i=0; i< len; i++){
+    turbo_uncoded = itpp::concat (turbo_uncoded, itpp::bin(in[i]));
+  }
   d_turbo_codec.encode (turbo_uncoded, turbo_coded_temp);
   turbo_coded = turbo_coded_temp;
+  size_t index = 0;
   /* Puncturing for rate 1/2 */
   if (d_turbo_rate == RATE_1_2) {
-    turbo_coded.set_length (turbo_coded_temp.length () - 8, true);
     handle_tail_perm (turbo_coded, turbo_coded_temp);
-    bvec_to_bytes (d_buffer, turbo_coded);
-    size_t triplet = 0;
-    size_t out_buff_index = 0;
-    int byte_index = 7;
     for (size_t i = 0; i < d_vec_len * 3 + d_tail_size; i++) {
-      if (i < d_vec_len * 3) {
-        triplet = i / 3;
-        if (triplet % 2 == 0 && i % 3 == 2) {
-          continue;
-        }
-        if (triplet % 2 == 0 && i % 3 == 1) {
-          continue;
-        }
-        out[out_buff_index] |= ((d_buffer[i / 8] >> (7 - i % 8)) & 1)
-            << byte_index;
-        byte_index--;
-        if (byte_index < 0) {
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
-        }
+      /*The tail has already been punctured in the handle_tail_perm function*/
+      if(i >= d_vec_len * 3){
+        out[index] = turbo_coded[i].value ();
+        index++;
+        continue;
       }
-      else {
-        out[out_buff_index] |= ((d_buffer[i / 8] >> (7 - i % 8)) & 1)
-            << byte_index;
-        byte_index--;
-        if (byte_index < 0) {
-          byte_index = 7;
-          out_buff_index++;
-          out[out_buff_index] = 0;
+      switch (i % 6)
+        {
+        case 3:
+        case 5:
+          break;
+        default:
+          out[index] = turbo_coded[i].value ();
         }
-      }
+      index++;
     }
   }
   else {
-    turbo_coded.set_length (turbo_coded_temp.length () - 4, true);
     handle_tail_perm (turbo_coded, turbo_coded_temp);
-    bvec_to_bytes (out, turbo_coded);
+    for (size_t i = 0; i < d_vec_len * 3 + d_tail_size; i++) {
+      out[index] = turbo_coded[i].value ();
+      index++;
+    }
   }
   return turbo_coded.length ();
 }
@@ -233,42 +223,18 @@ turbo_encoder::reset ()
 }
 
 void
-turbo_encoder::bytes_to_bvec (itpp::bvec &out, const uint8_t* buffer,
-                              size_t len)
-{
-  itpp::bvec byte;
-  for (int i = 0; i < len / 8; i++) {
-    byte = itpp::dec2bin (8, buffer[i]);
-    out = itpp::concat (out, byte);
-  }
-}
-
-void
-turbo_encoder::bvec_to_bytes (uint8_t *out, itpp::bvec in)
-{
-  size_t len = in.length ();
-  itpp::bvec byte (0);
-  for (int i = 0; i < len / 8; i++) {
-    byte = in.get (i * 8, (i + 1) * 8 - 1);
-    out[i] = itpp::bin2dec (byte, true);
-  }
-}
-
-void
 turbo_encoder::handle_tail_perm (itpp::bvec &out, itpp::bvec &in)
 {
   size_t start_index = 0;
   if (d_turbo_rate == RATE_1_2) {
-    start_index = out.length () - 12;
+    start_index = out.length () - 16;
   }
   else {
-    start_index = out.length () - d_tail_size;
+    start_index = out.length () - (d_tail_size + 4);
   }
   for (size_t it = start_index; it < start_index + d_tail_size; it++) {
-    out.set (
-        it,
-        in.get (
-            start_index + d_tail_permutations[d_turbo_rate][it - start_index]));
+    out.set(it,
+            in.get(start_index + d_tail_permutations[d_turbo_rate][it - start_index]));
   }
   return;
 }

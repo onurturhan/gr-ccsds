@@ -35,17 +35,17 @@ qa_turbo_encoder::t1 ()
   encoder::encoder_sptr turbo1 = turbo_encoder::make (turbo_encoder::RATE_1_6,
                                                       turbo_encoder::LEN_8920,
                                                       10000);
-  size_t len = 8920;
+  size_t len = 1784;
   uint8_t alphabet[] =
     { "ABCDEFGHIJKLMNOPQRSTYVWXYZabcdefghijklmnopqrstyvwxyz" };
-  uint8_t *tx = (uint8_t*) malloc ((len / 8) * sizeof(uint8_t));
+  uint8_t *tx = (uint8_t*) malloc (len * sizeof(uint8_t));
   uint8_t *rx = new uint8_t[10000];
   size_t count = 0;
-  for (int i = 0; i < len / 8; i++) {
+  for (int i = 0; i < len; i++) {
     count = i % 52;
-    tx[i] = alphabet[count];
+    tx[i] = alphabet[count] & 0x01;
   }
-  turbo1->encode (rx, tx, len);
+  turbo1->encode_trunc (rx, tx, len);
 
   free (tx);
   delete[] rx;

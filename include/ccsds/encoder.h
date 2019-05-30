@@ -53,7 +53,7 @@ public:
   virtual ~encoder ();
 
   /**
-   * Encodes a buffer. The difference with the encode() is that this method
+   * Encodes a buffer. The difference with the encode_trunc() is that this method
    * resets any internal state of the encoder to the initial states.
    *
    * @param out the output buffer that will hold the encoded data
@@ -72,7 +72,7 @@ public:
   encode(uint8_t *out, const uint8_t *in, size_t len) = 0;
 
   /**
-   * Encodes a buffer. The difference with the encode_once() is that
+   * Encodes a buffer. The difference with the encode() is that
    * this method does not reset the internal state of the encoder.
    * Therefore, it can be called again and continue the encoding when
    * data are available.
