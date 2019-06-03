@@ -148,7 +148,7 @@ endfunction(GR_ADD_TEST)
 # CMakeLists.txt, calls of the add_memtest() have no effect.
 ###############################################################################
 function(ccsds_enable_memcheck)
-    set(CCSDS_ENABLE_MEMCHECK_VAR ON CACHE INTERNAL "EQNX_ENABLE_MEMCHECK")
+    set(CCSDS_ENABLE_MEMCHECK_VAR ON CACHE INTERNAL "CCSDS_ENABLE_MEMCHECK")
     find_program(MEMORYCHECK_COMMAND valgrind)
 endfunction(ccsds_enable_memcheck)
 

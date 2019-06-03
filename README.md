@@ -1,5 +1,10 @@
 # gr-ccsds: CCSDS Telemetry and Telecommand Transceivers
 
+[![pipeline status](https://gitlab.com/librespacefoundation/gr-ccsds/badges/master/pipeline.svg)](https://gitlab.com/librespacefoundation/gr-ccsds/commits/master)
+[![coverage report](https://gitlab.com/librespacefoundation/gr-ccsds/badges/master/coverage.svg)](https://gitlab.com/librespacefoundation/gr-ccsds/commits/master)
+
+
+
 The `gr-ccsds` GNU Radio out-of-tree (OOT) module provides a set
 of transceivers implementing the CCSDS recommendations for telemetry
 and telecommand synchronization and channel coding.
@@ -63,6 +68,6 @@ For more indormation please visit our [site](https://libre.space).
 ![ESA](docs/assets/img_colorlogo_darkblue-300x131.gif)
 ![Libre Space Foundation](docs/assets/LSF_HD_Horizontal_Color1-300x66.png)   
 
-&copy; 2018 [Libre Space Foundation](http://librespacefoundation.org).
+&copy; 2018-2019 [Libre Space Foundation](http://librespacefoundation.org).
 
 Licensed under the [GPLv3](LICENSE).

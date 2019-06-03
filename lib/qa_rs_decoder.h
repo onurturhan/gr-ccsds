@@ -38,6 +38,7 @@ public:
   CPPUNIT_TEST(test_ecc16_decode);
   CPPUNIT_TEST(test_no_vfill);
   CPPUNIT_TEST(test_vfill);
+  CPPUNIT_TEST(test_errors);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -52,6 +53,9 @@ private:
 
   void
   test_vfill();
+
+  void
+  test_errors();
 };
 
 } /* namespace ccsds */

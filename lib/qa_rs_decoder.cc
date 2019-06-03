@@ -194,6 +194,44 @@ qa_rs_decoder::test_vfill ()
   test_multiple(50);
 }
 
+void
+qa_rs_decoder::test_errors ()
+{
+  CPPUNIT_ASSERT_THROW(
+      encoder::encoder_sptr enc_rs8 = rs_encoder::make (
+          rs_encoder::ECC_16, (rs_encoder::interleaver_t) 12),
+      std::invalid_argument);
+
+  CPPUNIT_ASSERT_THROW(
+      encoder::encoder_sptr enc_rs8 = rs_encoder::make (
+      (rs_encoder::ecc_t) 99, rs_encoder::INTERLEAVER_DEPTH_1),
+      std::invalid_argument);
+
+  CPPUNIT_ASSERT_THROW(
+      encoder::encoder_sptr enc_rs8 = rs_encoder::make (
+          rs_encoder::ECC_16, (rs_encoder::interleaver_t) 12),
+      std::invalid_argument);
+
+  CPPUNIT_ASSERT_THROW (
+      decoder::decoder_sptr rs8 = rs_decoder::make (
+          rs_decoder::ECC_16, (rs_decoder::interleaver_t) 15),
+          std::invalid_argument);
+  CPPUNIT_ASSERT_THROW (
+    decoder::decoder_sptr rs8 = rs_decoder::make (
+      (rs_decoder::ecc_t) 99, rs_decoder::INTERLEAVER_DEPTH_1),
+      std::invalid_argument);
+
+  encoder::encoder_sptr enc_rs8 = rs_encoder::make (
+      rs_encoder::ECC_16, rs_encoder::INTERLEAVER_DEPTH_1);
+
+  decoder::decoder_sptr rs8 = rs_decoder::make (
+      rs_decoder::ECC_16, rs_decoder::INTERLEAVER_DEPTH_1);
+  uint8_t tmp[1];
+  CPPUNIT_ASSERT(enc_rs8->encode(nullptr, nullptr, 0) == -1);
+  CPPUNIT_ASSERT(enc_rs8->encode(tmp, tmp, 40*1024) == -1);
+  CPPUNIT_ASSERT(rs8->decode(nullptr, nullptr, 0) == -1);
+CPPUNIT_ASSERT(rs8->decode(tmp, (const int8_t *)tmp, 40*1024) == -1);
+}
 
 } /* namespace ccsds */
 } /* namespace gr */

@@ -128,6 +128,13 @@ else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 
+###############################################################################
+# Handy macro to set easily a vatriable with a list of exclude directories
+###############################################################################
+macro(COVERAGE_SET_EXCLUDE_DIRS var)
+  set(${var} ${ARGN} CACHE INTERNAL "" FORCE)
+endmacro(COVERAGE_SET_EXCLUDE_DIRS)
+
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
 # NOTE! The executable should always have a ZERO as exit code otherwise
