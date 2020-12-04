@@ -22,7 +22,7 @@ and [CCSDS 401.0-B-28](https://public.ccsds.org/Pubs/401x0b29.pdf)
 * G++ (with C++11 support)
 * VOLK
 * git
-
+* sudo apt install git cmake gnuradio libitpp-dev
 
 ### Installation from source
 

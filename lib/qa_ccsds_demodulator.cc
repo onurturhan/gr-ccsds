@@ -29,7 +29,7 @@
 #include <ccsds/ccsds_constellation.h>
 #include <ccsds/pcm_encoder.h>
 #include <gnuradio/blocks/null_sink.h>
-#include <gnuradio/blocks/vector_sink_b.h>
+#include <gnuradio/blocks/vector_sink.h>
 #include <gnuradio/messages/msg_passing.h>
 #include <iostream>
 #include <boost/thread/thread.hpp>

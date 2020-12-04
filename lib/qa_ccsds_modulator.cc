@@ -33,7 +33,7 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/blocks/head.h>
 #include <random>
-#include <gnuradio/blocks/vector_sink_c.h>
+#include <gnuradio/blocks/vector_sink.h>
 
 namespace gr {
   namespace ccsds {
